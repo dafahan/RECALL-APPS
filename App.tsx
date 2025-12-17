@@ -14,6 +14,8 @@ import { Processing } from './screens/Processing';
 import { QuizActive } from './screens/QuizActive';
 import { Summary } from './screens/Summary';
 import { ReviewMissed } from './screens/ReviewMissed';
+import { Help } from './screens/Help';
+import { AppInfo } from './screens/AppInfo';
 
 const Stack = createNativeStackNavigator();
 
@@ -39,6 +41,8 @@ const App: React.FC = () => {
             <Stack.Screen name="QuizActive" component={QuizActive} />
             <Stack.Screen name="Summary" component={Summary} />
             <Stack.Screen name="ReviewMissed" component={ReviewMissed} />
+            <Stack.Screen name="Help" component={Help} />
+            <Stack.Screen name="AppInfo" component={AppInfo} />
           </Stack.Navigator>
         </NavigationContainer>
       </ThemeProvider>

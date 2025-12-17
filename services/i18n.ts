@@ -103,6 +103,56 @@ interface Translations {
   accuracy: string;
   reviewMissed: string;
   finish: string;
+
+  // Help Screen
+  helpTitle: string;
+  helpIntroTitle: string;
+  helpIntroText: string;
+  helpGettingStarted: string;
+  helpStep1Title: string;
+  helpStep1Text: string;
+  helpStep2Title: string;
+  helpStep2Text: string;
+  helpStep3Title: string;
+  helpStep3Text: string;
+  helpStep4Title: string;
+  helpStep4Text: string;
+  helpFaqTitle: string;
+  helpFaq1Q: string;
+  helpFaq1A: string;
+  helpFaq2Q: string;
+  helpFaq2A: string;
+  helpFaq3Q: string;
+  helpFaq3A: string;
+  helpFaq4Q: string;
+  helpFaq4A: string;
+  helpFaq5Q: string;
+  helpFaq5A: string;
+  helpNeedMoreHelp: string;
+  helpContactText: string;
+
+  // App Info Screen
+  appInfoTitle: string;
+  appInfoTagline: string;
+  appInfoAbout: string;
+  appInfoAboutText: string;
+  appInfoFeatures: string;
+  appInfoFeature1Title: string;
+  appInfoFeature1Text: string;
+  appInfoFeature2Title: string;
+  appInfoFeature2Text: string;
+  appInfoFeature3Title: string;
+  appInfoFeature3Text: string;
+  appInfoFeature4Title: string;
+  appInfoFeature4Text: string;
+  appInfoTech: string;
+  appInfoSourceCode: string;
+  appInfoGetApiKey: string;
+  appInfoReportIssue: string;
+  appInfoDeveloper: string;
+  appInfoDeveloperName: string;
+  appInfoBuiltWith: string;
+  appInfoLicense: string;
 }
 
 const translations: Record<Language, Translations> = {
@@ -205,7 +255,57 @@ const translations: Record<Language, Translations> = {
     correctAnswers: 'Correct Answers',
     accuracy: 'Accuracy',
     reviewMissed: 'Review Missed',
-    finish: 'Finish'
+    finish: 'Finish',
+
+    // Help Screen
+    helpTitle: 'Help',
+    helpIntroTitle: 'Welcome to Recall AI',
+    helpIntroText: 'Learn how to use active recall to supercharge your learning. This guide will walk you through everything you need to know.',
+    helpGettingStarted: 'Getting Started',
+    helpStep1Title: 'Get Your API Key',
+    helpStep1Text: 'Visit Google AI Studio and create a free Gemini API key. Go to Settings and add your key to enable AI features.',
+    helpStep2Title: 'Upload Your Document',
+    helpStep2Text: 'Upload any PDF, DOCX, or TXT file containing your study material. The AI will analyze it and extract key concepts.',
+    helpStep3Title: 'Customize Your Quiz',
+    helpStep3Text: 'Choose your study depth and number of cards. Enable Smart Enrichment to get questions beyond your document.',
+    helpStep4Title: 'Start Learning',
+    helpStep4Text: 'Answer questions, mark your responses as correct or incorrect, and review missed cards at the end.',
+    helpFaqTitle: 'Frequently Asked Questions',
+    helpFaq1Q: 'What is Active Recall?',
+    helpFaq1A: 'Active recall is a study technique where you actively stimulate memory during the learning process. Instead of passively reading, you test yourself with questions to strengthen retention.',
+    helpFaq2Q: 'Is my data secure?',
+    helpFaq2A: 'Yes! Your API key is stored locally on your device. Documents are processed through Google\'s Gemini API using your own key. We never store your documents or API key on our servers.',
+    helpFaq3Q: 'What is Smart Enrichment?',
+    helpFaq3A: 'Smart Enrichment generates additional questions related to your document content but from broader context. This helps deepen your understanding beyond just the material provided.',
+    helpFaq4Q: 'How do I get a free API key?',
+    helpFaq4A: 'Visit aistudio.google.com, sign in with your Google account, and create a new API key. The free tier is generous and perfect for student use.',
+    helpFaq5Q: 'What file formats are supported?',
+    helpFaq5A: 'Currently, we support PDF, DOCX, and TXT files. Make sure your documents contain readable text (not just images).',
+    helpNeedMoreHelp: 'Need More Help?',
+    helpContactText: 'Found a bug or have a feature request? Visit our GitHub repository to report issues or contribute to the project.',
+
+    // App Info Screen
+    appInfoTitle: 'App Info',
+    appInfoTagline: 'Stop Passive Reading. Start Active Recall.',
+    appInfoAbout: 'About This App',
+    appInfoAboutText: 'Recall AI is a mobile application designed to help students and researchers implement the Active Recall study method efficiently. Built to solve real study challenges, this app leverages Google\'s Gemini 2.5 Flash model to process documents and generate meaningful questions instantly.',
+    appInfoFeatures: 'Key Features',
+    appInfoFeature1Title: 'PDF Analysis',
+    appInfoFeature1Text: 'Upload any journal, ebook, or lecture slide and let AI analyze it.',
+    appInfoFeature2Title: 'AI-Generated Quizzes',
+    appInfoFeature2Text: 'Automatically generates key questions based on document content.',
+    appInfoFeature3Title: 'Smart Enrichment',
+    appInfoFeature3Text: 'AI generates related questions outside the provided text to broaden understanding.',
+    appInfoFeature4Title: 'Privacy First (BYOK)',
+    appInfoFeature4Text: 'Your API key is stored locally. Use your own free tier key with no paywalls.',
+    appInfoTech: 'Technology',
+    appInfoSourceCode: 'Source Code (GitHub)',
+    appInfoGetApiKey: 'Get Free API Key',
+    appInfoReportIssue: 'Report an Issue',
+    appInfoDeveloper: 'Developer',
+    appInfoDeveloperName: 'Built by UnilaStack',
+    appInfoBuiltWith: 'Made with dedication for better learning',
+    appInfoLicense: 'MIT License - Open Source'
   },
   
   id: {
@@ -307,7 +407,57 @@ const translations: Record<Language, Translations> = {
     correctAnswers: 'Jawaban Benar',
     accuracy: 'Akurasi',
     reviewMissed: 'Tinjau yang Terlewat',
-    finish: 'Selesai'
+    finish: 'Selesai',
+
+    // Help Screen
+    helpTitle: 'Bantuan',
+    helpIntroTitle: 'Selamat Datang di Recall AI',
+    helpIntroText: 'Pelajari cara menggunakan active recall untuk meningkatkan pembelajaran Anda. Panduan ini akan memandu Anda melalui semua yang perlu Anda ketahui.',
+    helpGettingStarted: 'Memulai',
+    helpStep1Title: 'Dapatkan API Key Anda',
+    helpStep1Text: 'Kunjungi Google AI Studio dan buat kunci API Gemini gratis. Buka Pengaturan dan tambahkan kunci Anda untuk mengaktifkan fitur AI.',
+    helpStep2Title: 'Unggah Dokumen Anda',
+    helpStep2Text: 'Unggah file PDF, DOCX, atau TXT yang berisi materi belajar Anda. AI akan menganalisisnya dan mengekstrak konsep kunci.',
+    helpStep3Title: 'Sesuaikan Kuis Anda',
+    helpStep3Text: 'Pilih kedalaman belajar dan jumlah kartu Anda. Aktifkan Pengayaan Cerdas untuk mendapatkan pertanyaan di luar dokumen Anda.',
+    helpStep4Title: 'Mulai Belajar',
+    helpStep4Text: 'Jawab pertanyaan, tandai jawaban Anda sebagai benar atau salah, dan tinjau kartu yang terlewat di akhir.',
+    helpFaqTitle: 'Pertanyaan yang Sering Diajukan',
+    helpFaq1Q: 'Apa itu Active Recall?',
+    helpFaq1A: 'Active recall adalah teknik belajar di mana Anda secara aktif merangsang memori selama proses pembelajaran. Alih-alih membaca pasif, Anda menguji diri sendiri dengan pertanyaan untuk memperkuat retensi.',
+    helpFaq2Q: 'Apakah data saya aman?',
+    helpFaq2A: 'Ya! Kunci API Anda disimpan secara lokal di perangkat Anda. Dokumen diproses melalui API Gemini Google menggunakan kunci Anda sendiri. Kami tidak pernah menyimpan dokumen atau kunci API Anda di server kami.',
+    helpFaq3Q: 'Apa itu Pengayaan Cerdas?',
+    helpFaq3A: 'Pengayaan Cerdas menghasilkan pertanyaan tambahan terkait konten dokumen Anda tetapi dari konteks yang lebih luas. Ini membantu memperdalam pemahaman Anda di luar materi yang disediakan.',
+    helpFaq4Q: 'Bagaimana cara mendapatkan kunci API gratis?',
+    helpFaq4A: 'Kunjungi aistudio.google.com, masuk dengan akun Google Anda, dan buat kunci API baru. Tier gratis sangat murah hati dan sempurna untuk penggunaan mahasiswa.',
+    helpFaq5Q: 'Format file apa yang didukung?',
+    helpFaq5A: 'Saat ini, kami mendukung file PDF, DOCX, dan TXT. Pastikan dokumen Anda berisi teks yang dapat dibaca (bukan hanya gambar).',
+    helpNeedMoreHelp: 'Butuh Bantuan Lebih?',
+    helpContactText: 'Menemukan bug atau memiliki permintaan fitur? Kunjungi repositori GitHub kami untuk melaporkan masalah atau berkontribusi pada proyek.',
+
+    // App Info Screen
+    appInfoTitle: 'Info Aplikasi',
+    appInfoTagline: 'Berhenti Membaca Pasif. Mulai Active Recall.',
+    appInfoAbout: 'Tentang Aplikasi Ini',
+    appInfoAboutText: 'Recall AI adalah aplikasi mobile yang dirancang untuk membantu siswa dan peneliti menerapkan metode belajar Active Recall secara efisien. Dibangun untuk menyelesaikan tantangan belajar nyata, aplikasi ini memanfaatkan model Gemini 2.5 Flash dari Google untuk memproses dokumen dan menghasilkan pertanyaan bermakna secara instan.',
+    appInfoFeatures: 'Fitur Utama',
+    appInfoFeature1Title: 'Analisis PDF',
+    appInfoFeature1Text: 'Unggah jurnal, ebook, atau slide kuliah apa pun dan biarkan AI menganalisisnya.',
+    appInfoFeature2Title: 'Kuis yang Dihasilkan AI',
+    appInfoFeature2Text: 'Secara otomatis menghasilkan pertanyaan kunci berdasarkan konten dokumen.',
+    appInfoFeature3Title: 'Pengayaan Cerdas',
+    appInfoFeature3Text: 'AI menghasilkan pertanyaan terkait di luar teks yang disediakan untuk memperluas pemahaman.',
+    appInfoFeature4Title: 'Privasi Pertama (BYOK)',
+    appInfoFeature4Text: 'Kunci API Anda disimpan secara lokal. Gunakan kunci tier gratis Anda sendiri tanpa paywall.',
+    appInfoTech: 'Teknologi',
+    appInfoSourceCode: 'Kode Sumber (GitHub)',
+    appInfoGetApiKey: 'Dapatkan Kunci API Gratis',
+    appInfoReportIssue: 'Laporkan Masalah',
+    appInfoDeveloper: 'Pengembang',
+    appInfoDeveloperName: 'Dibuat oleh UnilaStack',
+    appInfoBuiltWith: 'Dibuat dengan dedikasi untuk pembelajaran yang lebih baik',
+    appInfoLicense: 'Lisensi MIT - Open Source'
   }
 };
 

@@ -85,7 +85,10 @@ export const Settings: React.FC = () => {
     <Layout>
       <View style={styles.header}>
         <Text style={[styles.headerTitle, { color: colors.text }]}>{t('settingsTitle')}</Text>
-        <TouchableOpacity style={styles.iconBtn}>
+        <TouchableOpacity
+          style={styles.iconBtn}
+          onPress={() => navigation.navigate('Help')}
+        >
           <MaterialIcons name="help" size={24} color="white" />
         </TouchableOpacity>
       </View>
@@ -190,7 +193,10 @@ export const Settings: React.FC = () => {
 
         <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>{t('aboutRecall')}</Text>
         <View style={[styles.menuGroup, { backgroundColor: colors.card }]}>
-          <TouchableOpacity style={[styles.menuItem, { borderBottomWidth: 0 }]}>
+          <TouchableOpacity
+            style={[styles.menuItem, { borderBottomWidth: 0 }]}
+            onPress={() => navigation.navigate('AppInfo')}
+          >
             <View style={styles.menuLeft}>
               <View style={styles.menuIcon}>
                 <MaterialIcons name="info" size={20} color="white" />
