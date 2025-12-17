@@ -1,0 +1,5 @@
+{
+  "name": "Recall - AI Study Assistant",
+  "description": "A mobile-first study application featuring flashcards, AI document processing, and progress tracking with dark mode support.",
+  "requestFramePermissions": []
+}
