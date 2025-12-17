@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { Layout, COLORS } from '../components/Layout';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -72,15 +72,15 @@ export const ReviewMissed: React.FC = () => {
                     <Text style={styles.missedText}>Missed</Text>
                 </View>
 
-                <View style={styles.contentSection}>
+                <ScrollView style={styles.contentSection} showsVerticalScrollIndicator={false}>
                     <Text style={styles.label}>Question</Text>
                     <Text style={styles.questionText}>{currentCard.question}</Text>
-                    
+
                     <View style={styles.divider} />
-                    
+
                     <Text style={styles.label}>Answer</Text>
                     <Text style={styles.answerText}>{currentCard.answer}</Text>
-                </View>
+                </ScrollView>
 
                 <View style={styles.dots}>
                     {cards.map((_, i) => (
@@ -134,11 +134,11 @@ const styles = StyleSheet.create({
   missedLabel: { position: 'absolute', top: 24, right: 24, flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: 'rgba(254, 226, 226, 0.1)', paddingHorizontal: 12, paddingVertical: 4, borderRadius: 20, borderWidth: 1, borderColor: 'rgba(220, 38, 38, 0.3)' },
   missedText: { color: '#fca5a5', fontSize: 10, fontWeight: 'bold', textTransform: 'uppercase' },
   
-  contentSection: { flex: 1, justifyContent: 'center' },
+  contentSection: { flex: 1, paddingBottom: 16 },
   label: { fontSize: 10, fontWeight: 'bold', textTransform: 'uppercase', color: '#666', marginBottom: 8, letterSpacing: 1 },
-  questionText: { fontSize: 22, fontWeight: 'bold', color: 'white', marginBottom: 24 },
+  questionText: { fontSize: 18, fontWeight: 'bold', color: 'white', marginBottom: 24 },
   divider: { height: 1, backgroundColor: 'rgba(255,255,255,0.1)', marginBottom: 24 },
-  answerText: { fontSize: 18, color: '#ccc', lineHeight: 26 },
+  answerText: { fontSize: 16, color: '#ccc', lineHeight: 24 },
 
   dots: { flexDirection: 'row', justifyContent: 'center', gap: 6, marginTop: 24 },
   dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: 'rgba(255,255,255,0.1)' },

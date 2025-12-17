@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Animated, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Animated, Dimensions, ScrollView } from 'react-native';
 import { Layout, COLORS } from '../components/Layout';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -27,7 +27,10 @@ export const QuizActive: React.FC = () => {
 
   useEffect(() => {
     if (deckId) {
-      db.getCardsForDeck(deckId, Number(count) || 10).then(fetchedCards => {
+      // Reset all card statuses for this deck to start fresh
+      db.resetDeckCardStatuses(deckId).then(() => {
+        return db.getCardsForDeck(deckId, Number(count) || 10);
+      }).then(fetchedCards => {
         setCards(fetchedCards);
         setLoading(false);
       });
@@ -131,13 +134,13 @@ export const QuizActive: React.FC = () => {
           >
             {/* Front Card */}
             <Animated.View style={[styles.card, styles.cardFront, { transform: [{ rotateY: frontInterpolate }], opacity: frontOpacity }]}>
-              <View style={styles.cardContent}>
+              <ScrollView contentContainerStyle={styles.cardContent} showsVerticalScrollIndicator={false}>
                 <View style={styles.iconCircle}>
                   <MaterialIcons name="help-outline" size={32} color={COLORS.primary} />
                 </View>
                 <Text style={styles.questionText}>{currentCard.question}</Text>
                 <Text style={styles.tapText}>Tap to reveal</Text>
-              </View>
+              </ScrollView>
             </Animated.View>
 
             {/* Back Card */}
@@ -147,18 +150,18 @@ export const QuizActive: React.FC = () => {
                 <Text style={styles.recapLabel}>Question</Text>
                 <Text numberOfLines={1} style={styles.recapText}>{currentCard.question}</Text>
               </View>
-              
-              <View style={styles.answerContent}>
+
+              <ScrollView style={styles.answerContent} showsVerticalScrollIndicator={false}>
                 <View style={styles.answerHeader}>
                    <MaterialIcons name="check-circle" size={16} color={COLORS.primary} />
                    <Text style={styles.answerLabel}>Answer</Text>
                 </View>
                 <Text style={styles.answerText}>{currentCard.answer}</Text>
-                
-                <View style={styles.sourceBar}>
-                  <MaterialIcons name="menu-book" size={14} color="#666" />
-                  <Text style={styles.sourceText}>Source: AI Generated</Text>
-                </View>
+              </ScrollView>
+
+              <View style={styles.sourceBar}>
+                <MaterialIcons name="menu-book" size={14} color="#666" />
+                <Text style={styles.sourceText}>Source: AI Generated</Text>
               </View>
             </Animated.View>
           </TouchableOpacity>
@@ -223,6 +226,8 @@ const styles = StyleSheet.create({
   },
   cardContent: {
     alignItems: 'center',
+    flex: 1,
+    justifyContent: 'center',
   },
   iconCircle: {
     padding: 16,
@@ -231,11 +236,11 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   questionText: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: 'bold',
     color: 'white',
     textAlign: 'center',
-    lineHeight: 32,
+    lineHeight: 28,
   },
   tapText: {
     marginTop: 32,
@@ -257,11 +262,11 @@ const styles = StyleSheet.create({
   recapLabel: { fontSize: 10, fontWeight: 'bold', color: '#666', textTransform: 'uppercase' },
   recapText: { flex: 1, fontSize: 12, color: '#aaa' },
   
-  answerContent: { flex: 1, padding: 32 },
+  answerContent: { flex: 1, paddingHorizontal: 32, paddingTop: 32, paddingBottom: 16 },
   answerHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 },
   answerLabel: { fontSize: 12, fontWeight: 'bold', color: COLORS.primary, textTransform: 'uppercase' },
-  answerText: { fontSize: 22, fontWeight: 'bold', color: 'white', lineHeight: 28 },
-  sourceBar: { marginTop: 'auto', paddingTop: 20, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.05)', flexDirection: 'row', alignItems: 'center', gap: 6 },
+  answerText: { fontSize: 18, fontWeight: '600', color: 'white', lineHeight: 26 },
+  sourceBar: { paddingHorizontal: 32, paddingVertical: 16, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.05)', flexDirection: 'row', alignItems: 'center', gap: 6 },
   sourceText: { fontSize: 12, color: '#666' },
 
   footer: { flexDirection: 'row', gap: 16, marginTop: 24 },

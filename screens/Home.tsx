@@ -1,20 +1,62 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, ActivityIndicator } from 'react-native';
 import { Layout, COLORS } from '../components/Layout';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
+import * as DocumentPicker from 'expo-document-picker';
+import * as FileSystem from 'expo-file-system';
 
 export const Home: React.FC = () => {
   const navigation = useNavigation<any>();
+  const [uploading, setUploading] = useState(false);
 
-  const handleUpload = () => {
-    // Flow: Upload -> Setup -> Processing -> Active
-    // We pass a mock topic to simulate a file being selected
-    navigation.navigate('QuizSetup', { 
-       deckId: 'new',
-       topic: "Introduction to Deep Learning" 
-    });
+  const handleUpload = async () => {
+    try {
+      setUploading(true);
+
+      // Pick document
+      const result = await DocumentPicker.getDocumentAsync({
+        type: ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'text/plain'],
+        copyToCacheDirectory: true
+      });
+
+      if (result.canceled) {
+        setUploading(false);
+        return;
+      }
+
+      const file = result.assets[0];
+
+      // Extract filename without extension as topic
+      const fileName = file.name;
+      const topic = fileName.replace(/\.(pdf|docx|txt)$/i, '');
+
+      // Read file content (for text files) or just pass the URI
+      let fileContent = '';
+
+      if (file.mimeType === 'text/plain') {
+        const content = await FileSystem.readAsStringAsync(file.uri);
+        fileContent = content.substring(0, 5000); // Limit to first 5000 chars
+      }
+
+      setUploading(false);
+
+      // Navigate to QuizSetup with file info
+      navigation.navigate('QuizSetup', {
+        deckId: 'new',
+        topic: topic,
+        fileName: fileName,
+        fileUri: file.uri,
+        fileContent: fileContent,
+        mimeType: file.mimeType
+      });
+
+    } catch (error) {
+      setUploading(false);
+      console.error('Error picking document:', error);
+      Alert.alert('Error', 'Failed to load document. Please try again.');
+    }
   };
 
   return (
@@ -25,7 +67,10 @@ export const Home: React.FC = () => {
             <MaterialIcons name="psychology" size={24} color={COLORS.primary} />
           </View>
           <Text style={styles.appName}>Recall</Text>
-          <TouchableOpacity style={styles.historyBtn}>
+          <TouchableOpacity
+            style={styles.historyBtn}
+            onPress={() => navigation.navigate('Library')}
+          >
             <MaterialIcons name="history" size={24} color="#888" />
           </TouchableOpacity>
         </View>
@@ -38,30 +83,40 @@ export const Home: React.FC = () => {
         </View>
 
         <View style={styles.uploadContainer}>
-          <TouchableOpacity 
+          <TouchableOpacity
             onPress={handleUpload}
             activeOpacity={0.9}
             style={styles.uploadCard}
+            disabled={uploading}
           >
             <LinearGradient
               colors={['#383821', '#2d2c15']}
               style={StyleSheet.absoluteFill}
             />
             <View style={styles.dashedBorder} />
-            
-            <View style={styles.iconCircle}>
-              <MaterialIcons name="cloud-upload" size={40} color={COLORS.primary} />
-            </View>
-            
-            <View style={styles.uploadTextContainer}>
-              <Text style={styles.uploadTitle}>Tap to Upload PDF</Text>
-              <Text style={styles.uploadSubtitle}>Supports PDF, DOCX, TXT</Text>
-            </View>
 
-            <View style={styles.selectBtn}>
-              <MaterialIcons name="add" size={20} color="#1c1c0d" />
-              <Text style={styles.selectBtnText}>Select File</Text>
-            </View>
+            {uploading ? (
+              <>
+                <ActivityIndicator size="large" color={COLORS.primary} />
+                <Text style={styles.uploadingText}>Loading document...</Text>
+              </>
+            ) : (
+              <>
+                <View style={styles.iconCircle}>
+                  <MaterialIcons name="cloud-upload" size={40} color={COLORS.primary} />
+                </View>
+
+                <View style={styles.uploadTextContainer}>
+                  <Text style={styles.uploadTitle}>Tap to Upload Document</Text>
+                  <Text style={styles.uploadSubtitle}>Supports PDF, DOCX, TXT</Text>
+                </View>
+
+                <View style={styles.selectBtn}>
+                  <MaterialIcons name="add" size={20} color="#1c1c0d" />
+                  <Text style={styles.selectBtnText}>Select File</Text>
+                </View>
+              </>
+            )}
           </TouchableOpacity>
         </View>
 
@@ -78,7 +133,7 @@ export const Home: React.FC = () => {
 
 const styles = StyleSheet.create({
   scrollContent: {
-    paddingBottom: 100, // Space for BottomNav
+    paddingBottom: 100,
   },
   header: {
     flexDirection: 'row',
@@ -166,6 +221,12 @@ const styles = StyleSheet.create({
   uploadSubtitle: {
     fontSize: 14,
     color: '#888',
+  },
+  uploadingText: {
+    marginTop: 16,
+    fontSize: 14,
+    color: COLORS.primary,
+    fontWeight: '600',
   },
   selectBtn: {
     flexDirection: 'row',

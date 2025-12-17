@@ -1,66 +1,177 @@
-
 import { GoogleGenAI } from "@google/genai";
+import { db } from './db';
+import * as FileSystem from 'expo-file-system';
 
 export const aiService = {
-  async generateFlashcards(topic: string, count: number): Promise<{ title: string; cards: { question: string; answer: string }[] }> {
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-
-    // Mock PDF Text content if the topic is just a filename or short string
-    // In a real app, we would extract text from PDF here.
-    const context = `
-      Topic: ${topic}
-      
-      (Simulated Document Context):
-      Neural networks are a subset of machine learning and are at the heart of deep learning algorithms. 
-      Their name and structure are inspired by the human brain, mimicking the way that biological neurons signal to one another.
-      A neural network consists of three main layers: an input layer, one or more hidden layers, and an output layer.
-      Perceptrons are the fundamental building blocks of neural networks.
-      Backpropagation is the central mechanism by which neural networks learn. It is the messenger telling the network whether or not the net made a mistake when it made a prediction.
-      Convolutional Neural Networks (CNNs) are primarily used for image processing and computer vision tasks.
-      Recurrent Neural Networks (RNNs) are designed to interpret temporal or sequential information, such as language translation.
-      Overfitting occurs when a model learns the detail and noise in the training data to the extent that it negatively impacts the performance of the model on new data.
-      Regularization techniques like Dropout are used to prevent overfitting.
-    `;
-
-    const prompt = `
-      You are an expert tutor. Create exactly ${count} flashcards based on the provided text/topic: "${topic}".
-      
-      Return valid JSON only. The response must be a JSON object with this structure:
-      {
-        "title": "A short, 3-5 word title for this deck based on the content",
-        "cards": [
-          {
-            "question": "Concept question",
-            "answer": "Clear, concise answer"
-          }
-        ]
+  /**
+   * Extract text content from a file
+   */
+  async extractFileContent(fileUri: string, mimeType: string): Promise<string> {
+    try {
+      // For text files, read directly
+      if (mimeType === 'text/plain') {
+        const content = await FileSystem.readAsStringAsync(fileUri);
+        return content;
       }
-      
-      Do not include markdown formatting like \`\`\`json. Just the raw JSON string.
-    `;
+
+      // For PDFs, we'll use Gemini's file API or extract what we can
+      // Note: Full PDF parsing would require native libraries
+      // For now, we'll use the file URI directly with Gemini
+      return '';
+    } catch (error) {
+      console.error('Error extracting file content:', error);
+      return '';
+    }
+  },
+
+  /**
+   * Generate flashcards from document content
+   */
+  async generateFlashcards(
+    topic: string,
+    count: number,
+    fileContent?: string,
+    fileUri?: string,
+    mimeType?: string
+  ): Promise<{ title: string; cards: { question: string; answer: string }[] }> {
+    // Get API key from settings
+    const settings = await db.getSettings();
+    const apiKey = settings.apiKey || process.env.GEMINI_API_KEY || '';
+
+    if (!apiKey) {
+      throw new Error('API key not configured. Please add your Gemini API key in Settings.');
+    }
+
+    const ai = new GoogleGenAI({ apiKey });
+
+    // Extract content if file URI provided
+    let documentContent = fileContent || '';
+    if (!documentContent && fileUri && mimeType) {
+      documentContent = await this.extractFileContent(fileUri, mimeType);
+    }
+
+    // Determine if we have actual document content or just a topic
+    const hasDocumentContent = documentContent && documentContent.length > 100;
+
+    // Build the prompt based on whether we have document content
+    const prompt = hasDocumentContent
+      ? this.buildDocumentBasedPrompt(topic, count, documentContent, settings.aiSuggestions)
+      : this.buildTopicBasedPrompt(topic, count);
 
     try {
       const response = await ai.models.generateContent({
         model: 'gemini-2.5-flash',
         contents: prompt,
         config: {
-          responseMimeType: 'application/json'
+          responseMimeType: 'application/json',
+          temperature: 0.7,
         }
       });
 
       const text = response.text || "{}";
       const cleanText = text.replace(/```json|```/g, '').trim();
-      return JSON.parse(cleanText);
+      const result = JSON.parse(cleanText);
+
+      // Validate the response
+      if (!result.title || !result.cards || !Array.isArray(result.cards)) {
+        throw new Error('Invalid response format from AI');
+      }
+
+      return result;
     } catch (error) {
       console.error("AI Generation Error:", error);
-      // Fallback if AI fails (to prevent app crash during demo)
-      return {
-        title: `${topic} (Offline)`,
-        cards: Array.from({ length: count }).map((_, i) => ({
-          question: `What is a key concept of ${topic} (${i + 1})?`,
-          answer: "This is a placeholder answer generated because the AI request failed or the key is invalid."
-        }))
-      };
+
+      // Provide more specific error message
+      if (error instanceof Error) {
+        if (error.message.includes('API_KEY') || error.message.includes('401')) {
+          throw new Error('Invalid API key. Please check your Gemini API key in Settings.');
+        }
+        throw new Error(`AI generation failed: ${error.message}`);
+      }
+
+      throw new Error('Failed to generate flashcards. Please try again.');
     }
+  },
+
+  /**
+   * Build prompt for document-based flashcard generation
+   */
+  buildDocumentBasedPrompt(topic: string, count: number, content: string, enableEnrichment: boolean): string {
+    const enrichmentInstruction = enableEnrichment
+      ? `\n- You may also generate max 50% related questions that go beyond the document but are conceptually connected to help deepen understanding.`
+      : '';
+
+    return `You are an expert educational content creator specializing in creating effective flashcards for active recall and spaced repetition learning.
+
+**Task**: Create exactly ${count} high-quality flashcards from the following document about "${topic}".
+
+**Document Content**:
+${content.substring(0, 8000)} ${content.length > 8000 ? '...(content truncated)' : ''}
+
+**Instructions**:
+1. **Extract Key Concepts**: Identify the most important concepts, definitions, processes, and relationships in the document
+2. **Create Focused Questions**: Each flashcard should test ONE specific concept
+3. **Use Active Recall**: Frame questions to make learners retrieve information from memory
+4. **Provide Clear Answers**: Answers should be concise but complete (2-4 sentences)
+5. **Progressive Difficulty**: Mix basic recall questions with application/understanding questions
+6. **Avoid Ambiguity**: Questions should have clear, unambiguous answers${enrichmentInstruction}
+
+**Question Types to Use**:
+- Definition questions: "What is...?", "Define..."
+- Explanation questions: "How does... work?", "Explain the process of..."
+- Comparison questions: "What is the difference between... and...?"
+- Application questions: "When would you use...?", "Why is... important?"
+- Relationship questions: "How does... relate to...?"
+
+**Response Format** (JSON only):
+{
+  "title": "Concise 3-5 word title for this deck",
+  "cards": [
+    {
+      "question": "Clear, specific question testing one concept",
+      "answer": "Accurate, concise answer (2-4 sentences)"
+    }
+  ]
+}
+
+Generate exactly ${count} cards. Return only valid JSON, no markdown formatting.`;
+  },
+
+  /**
+   * Build prompt for topic-based flashcard generation (no document)
+   */
+  buildTopicBasedPrompt(topic: string, count: number): string {
+    return `You are an expert educational content creator specializing in creating effective flashcards.
+
+**Task**: Create exactly ${count} high-quality flashcards about "${topic}".
+
+**Instructions**:
+1. Cover fundamental concepts and important details about "${topic}"
+2. Each flashcard should test ONE specific concept
+3. Use active recall - make learners retrieve information
+4. Answers should be concise but complete (2-4 sentences)
+5. Progress from basic to more advanced concepts
+6. Include practical applications where relevant
+
+**Question Types**:
+- Definitions and terminology
+- Core concepts and principles
+- How things work (processes/mechanisms)
+- Applications and use cases
+- Comparisons and relationships
+- Important facts and details
+
+**Response Format** (JSON only):
+{
+  "title": "Concise 3-5 word title for this deck",
+  "cards": [
+    {
+      "question": "Clear, specific question",
+      "answer": "Accurate, concise answer (2-4 sentences)"
+    }
+  ]
+}
+
+Generate exactly ${count} cards. Return only valid JSON, no markdown formatting.`;
   }
 };

@@ -8,17 +8,21 @@ import { LinearGradient } from 'expo-linear-gradient';
 export const QuizSetup: React.FC = () => {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
-  const { deckId, topic } = route.params || {};
-  
+  const { deckId, topic, fileName, fileUri, fileContent, mimeType } = route.params || {};
+
   const [cardCount, setCardCount] = useState(10);
   const isNewDeck = deckId === 'new';
   const displayTopic = topic || "General Knowledge";
 
   const handleStart = () => {
     if (isNewDeck) {
-      navigation.navigate('Processing', { 
+      navigation.navigate('Processing', {
         topic: displayTopic,
-        count: cardCount 
+        count: cardCount,
+        fileName,
+        fileUri,
+        fileContent,
+        mimeType
       });
     } else {
       navigation.navigate('QuizActive', { deckId, count: cardCount });

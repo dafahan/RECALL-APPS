@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ViewStyle } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -18,7 +18,7 @@ export const COLORS = {
 
 export const Layout: React.FC<{ children: React.ReactNode, hideNav?: boolean }> = ({ children, hideNav }) => {
   return (
-    <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
+    <SafeAreaView style={styles.container} edges={['top', 'left', 'right', 'bottom']}>
       <View style={styles.content}>
         {children}
       </View>
@@ -75,13 +75,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#1c1c0d',
     borderTopWidth: 1,
     borderTopColor: '#333',
-    paddingBottom: Platform.OS === 'ios' ? 20 : 12,
-    paddingTop: 12,
+    paddingVertical: 12,
     paddingHorizontal: 16,
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
   },
   navItem: {
     flex: 1,

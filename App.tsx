@@ -21,11 +21,11 @@ const App: React.FC = () => {
     <SafeAreaProvider>
       <StatusBar style="light" backgroundColor="#23220f" />
       <NavigationContainer>
-        <Stack.Navigator 
+        <Stack.Navigator
           screenOptions={{
             headerShown: false,
             contentStyle: { backgroundColor: '#23220f' },
-            animation: 'slide_from_right'
+            animation: 'none'
           }}
           initialRouteName="Home"
         >

@@ -9,7 +9,7 @@ import { db } from '../services/db';
 export const Processing: React.FC = () => {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
-  const { topic = "Study Session", count = 5 } = route.params || {};
+  const { topic = "Study Session", count = 5, fileName, fileUri, fileContent, mimeType } = route.params || {};
 
   const [progress, setProgress] = useState(0);
   const [statusText, setStatusText] = useState("Initializing...");
@@ -47,18 +47,34 @@ export const Processing: React.FC = () => {
     let isMounted = true;
 
     const process = async () => {
+      // Check if API key exists first
+      const settings = await db.getSettings();
+
+      if (!settings.apiKey) {
+        if (!isMounted) return;
+        setStatusText("API Key Not Configured");
+        setProgress(0);
+
+        setTimeout(() => {
+          if (isMounted) {
+            navigation.replace('Settings');
+          }
+        }, 2000);
+        return;
+      }
+
       setStatusText("Reading document...");
       setProgress(10);
-      
+
       const startTime = Date.now();
       setStatusText("Consulting Gemini AI...");
       setProgress(30);
 
       try {
-        const result = await aiService.generateFlashcards(topic, count);
-        
+        const result = await aiService.generateFlashcards(topic, count, fileContent, fileUri, mimeType);
+
         if (!isMounted) return;
-        
+
         setProgress(80);
         setStatusText("Creating Flashcards...");
 
@@ -71,13 +87,24 @@ export const Processing: React.FC = () => {
 
         if (!isMounted) return;
         setProgress(100);
-        
+
         // Use replace to prevent going back to processing
         navigation.replace('QuizActive', { deckId: newDeckId, count });
 
-      } catch (e) {
+      } catch (e: any) {
         console.error(e);
-        setStatusText("Error generating cards.");
+        if (!isMounted) return;
+
+        if (e.message?.includes('API key')) {
+          setStatusText("Invalid API Key");
+          setTimeout(() => {
+            if (isMounted) {
+              navigation.replace('Settings');
+            }
+          }, 2000);
+        } else {
+          setStatusText("Error generating cards.");
+        }
       }
     };
 
