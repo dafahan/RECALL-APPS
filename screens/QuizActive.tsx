@@ -41,6 +41,12 @@ export const QuizActive: React.FC = () => {
     }
   }, [deckId]);
 
+  // Reset flip state whenever currentIndex changes
+  useEffect(() => {
+    setIsFlipped(false);
+    flipAnim.setValue(0);
+  }, [currentIndex]);
+
   const flipCard = () => {
     if (isFlipped) return;
     setIsFlipped(true);
@@ -52,13 +58,6 @@ export const QuizActive: React.FC = () => {
     }).start();
   };
 
-  const resetCard = (callback: () => void) => {
-    setIsFlipped(false);
-    // Instant reset for next card, could animate back if desired
-    flipAnim.setValue(0);
-    callback();
-  };
-
   const handleNext = async (result: 'missed' | 'mastered') => {
     setSessionResults(prev => ({ ...prev, [result]: prev[result] + 1 }));
 
@@ -68,7 +67,10 @@ export const QuizActive: React.FC = () => {
     }
 
     if (currentIndex < cards.length - 1) {
-      resetCard(() => setCurrentIndex(prev => prev + 1));
+      // Reset flip state immediately BEFORE changing index to prevent race condition
+      setIsFlipped(false);
+      flipAnim.setValue(0);
+      setCurrentIndex(prev => prev + 1);
     } else {
       const finalMastered = result === 'mastered' ? sessionResults.mastered + 1 : sessionResults.mastered;
       const finalMissed = result === 'missed' ? sessionResults.missed + 1 : sessionResults.missed;
@@ -131,8 +133,9 @@ export const QuizActive: React.FC = () => {
 
         {/* Card Container */}
         <View style={styles.cardContainer}>
-          <TouchableOpacity 
-            activeOpacity={1} 
+          <TouchableOpacity
+            key={currentIndex}
+            activeOpacity={1}
             onPress={flipCard}
             style={styles.cardWrapper}
           >
