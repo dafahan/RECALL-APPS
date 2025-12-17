@@ -34,9 +34,9 @@ Built during an "overnight sprint" to solve a real college assignment problem, t
 ## 📱 Screenshots
 
 <p align="center">
-  <img src="https://via.placeholder.com/200x400?text=Home" width="200" />
-  <img src="https://via.placeholder.com/200x400?text=PDF+Upload" width="200" />
-  <img src="https://via.placeholder.com/200x400?text=Quiz+Mode" width="200" />
+  <img src="https://raw.githubusercontent.com/dafahan/RECALL-APPS/refs/heads/main/assets/images/recall1.webp" width="200" />
+  <img src="https://raw.githubusercontent.com/dafahan/RECALL-APPS/refs/heads/main/assets/images/recall2.webp" width="200" />
+  <img src="https://raw.githubusercontent.com/dafahan/RECALL-APPS/refs/heads/main/assets/images/recall3.webp" width="200" />
 </p>
 
 ## 🛠️ Tech Stack
