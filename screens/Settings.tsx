@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Switch, ScrollView, TextInput, Alert, Modal } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Switch, ScrollView, TextInput, Alert, Modal, Platform, KeyboardAvoidingView } from 'react-native';
 import { Layout, COLORS } from '../components/Layout';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -211,7 +211,16 @@ export const Settings: React.FC = () => {
         transparent={true}
         onRequestClose={() => setShowAPIModal(false)}
       >
-        <View style={styles.modalOverlay}>
+        <KeyboardAvoidingView 
+          style={styles.modalOverlay}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
+        >
+          <TouchableOpacity 
+            style={styles.modalBackdrop} 
+            activeOpacity={1} 
+            onPress={() => setShowAPIModal(false)}
+          />
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>{t('apiKeyTitle')}</Text>
@@ -251,7 +260,7 @@ export const Settings: React.FC = () => {
               </TouchableOpacity>
             </View>
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </Modal>
     </Layout>
   );
@@ -333,6 +342,9 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.8)',
     justifyContent: 'flex-end'
+  },
+  modalBackdrop: {
+    flex: 1
   },
   modalContent: {
     backgroundColor: COLORS.surfaceDark,

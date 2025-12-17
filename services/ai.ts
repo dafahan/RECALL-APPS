@@ -3,13 +3,70 @@ import { db } from './db';
 import * as FileSystem from 'expo-file-system';
 
 export const aiService = {
-  // ... (extractFileContent tetap sama) ...
-  async extractFileContent(fileUri: string, mimeType: string): Promise<string> {
+  /**
+   * Extract text content from files (including images with OCR)
+   */
+  async extractFileContent(fileUri: string, mimeType: string, apiKey?: string): Promise<string> {
     try {
+      // Text files - read directly
       if (mimeType === 'text/plain') {
         const content = await FileSystem.readAsStringAsync(fileUri);
         return content;
       }
+      
+      // Images (handwriting, photos of documents) - use Gemini Vision OCR
+      if (mimeType.startsWith('image/')) {
+        if (!apiKey) {
+          console.warn('No API key for image OCR');
+          return '';
+        }
+        
+        const ai = new GoogleGenAI({ apiKey });
+        
+        // Read image as base64
+        const base64Image = await FileSystem.readAsStringAsync(fileUri, {
+          encoding: 'base64',
+        });
+        
+        // Use Gemini Vision to extract text from image
+        const response = await ai.models.generateContent({
+          model: 'gemini-2.5-flash',
+          contents: [
+            {
+              role: 'user',
+              parts: [
+                {
+                  inlineData: {
+                    mimeType: mimeType,
+                    data: base64Image,
+                  },
+                },
+                {
+                  text: `Extract ALL text from this image. This may contain handwritten notes, printed text, or a mix of both.
+
+Instructions:
+- Transcribe every word you can read, maintaining the original structure
+- If it's handwritten, do your best to interpret the handwriting
+- Include all headings, bullet points, numbered lists, etc.
+- If there are diagrams or charts, describe them briefly
+- Output ONLY the extracted text, no commentary
+
+Extracted text:`
+                },
+              ],
+            },
+          ],
+          config: {
+            temperature: 0.1, // Very low for accurate OCR
+          },
+        });
+        
+        const extractedText = response.text || '';
+        console.log('OCR extracted text length:', extractedText.length);
+        return extractedText;
+      }
+      
+      // PDF and other formats - for future implementation
       return '';
     } catch (error) {
       console.error('Error extracting file content:', error);
@@ -39,10 +96,11 @@ export const aiService = {
 
     let documentContent = fileContent || '';
     if (!documentContent && fileUri && mimeType) {
-      documentContent = await this.extractFileContent(fileUri, mimeType);
+      // Pass apiKey for image OCR capability
+      documentContent = await this.extractFileContent(fileUri, mimeType, apiKey);
     }
 
-    const hasDocumentContent = documentContent && documentContent.length > 100;
+    const hasDocumentContent = documentContent && documentContent.length > 50; // Lowered threshold
     
     // Check enrichment setting
     const useEnrichment = settings.aiSuggestions;
@@ -51,101 +109,156 @@ export const aiService = {
       ? this.buildDocumentBasedPrompt(topic, count, documentContent, useEnrichment, language)
       : this.buildTopicBasedPrompt(topic, count, language);
 
-    // TWEAK: Gunakan temperature lebih rendah jika Strict Mode (tanpa enrichment)
-    // agar AI lebih patuh pada konteks.
-    const temperature = (hasDocumentContent && !useEnrichment) ? 0.3 : 0.7;
+    // Temperature: 0.4 memberikan keseimbangan antara fokus dan variasi
+    // Terlalu rendah (0.1) = AI terjebak pola berulang/metadata
+    // Terlalu tinggi (0.7+) = AI hallucinate
+    const temperature = (hasDocumentContent && !useEnrichment) ? 0.4 : 0.5;
 
-    try {
-      const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash-lite', // Pastikan model ini valid atau gunakan 'gemini-1.5-flash'
-        contents: prompt,
-        config: {
-          responseMimeType: 'application/json',
-          temperature: temperature, 
+    // Models to try in order of preference (fallback if one is overloaded)
+    const models = ['gemini-2.5-flash', 'gemini-2.5-pro', 'gemini-2.0-flash', 'gemini-2.0-flash-lite'];
+    
+    let lastError: Error | null = null;
+    
+    for (const model of models) {
+      try {
+        console.log(`Trying model: ${model}`);
+        const response = await ai.models.generateContent({
+          model: model,
+          contents: prompt,
+          config: {
+            responseMimeType: 'application/json',
+            temperature: temperature, 
+          }
+        });
+
+        const text = response.text || "{}";
+        const cleanText = text.replace(/```json|```/g, '').trim();
+        const result = JSON.parse(cleanText);
+
+        if (!result.title || !result.cards || !Array.isArray(result.cards)) {
+          throw new Error('Invalid response format from AI');
         }
-      });
 
-      const text = response.text || "{}";
-      const cleanText = text.replace(/```json|```/g, '').trim();
-      const result = JSON.parse(cleanText);
-
-      if (!result.title || !result.cards || !Array.isArray(result.cards)) {
-        throw new Error('Invalid response format from AI');
-      }
-
-      return result;
-    } catch (error) {
-      console.error("AI Generation Error:", error);
-      if (error instanceof Error) {
-        if (error.message.includes('API_KEY') || error.message.includes('401')) {
+        console.log(`Success with model: ${model}`);
+        return result;
+      } catch (error) {
+        console.warn(`Model ${model} failed:`, error);
+        lastError = error as Error;
+        
+        // If it's overloaded (503) or rate limited, try next model
+        const errorMsg = error instanceof Error ? error.message : String(error);
+        if (errorMsg.includes('503') || 
+            errorMsg.includes('overloaded') ||
+            errorMsg.includes('UNAVAILABLE') ||
+            errorMsg.includes('429')) {
+          continue; // Try next model
+        }
+        
+        // For API key errors, throw immediately with clear message
+        if (errorMsg.includes('API_KEY') || errorMsg.includes('401')) {
           throw new Error('Invalid API key. Please check your Gemini API key in Settings.');
         }
-        throw new Error(`AI generation failed: ${error.message}`);
+        
+        // For leaked API key, throw immediately
+        if (errorMsg.includes('leaked') || errorMsg.includes('403')) {
+          throw new Error('This API key has been reported as leaked and is disabled. Please create a new API key at https://aistudio.google.com/app/apikey');
+        }
+        
+        // For quota exceeded, throw immediately with clear message
+        if (errorMsg.includes('quota') || errorMsg.includes('RESOURCE_EXHAUSTED')) {
+          throw new Error('Daily API quota exceeded. Please wait until tomorrow or use a different API key.');
+        }
+        
+        // For other errors, try next model
+        continue;
       }
-      throw new Error('Failed to generate flashcards. Please try again.');
     }
+    
+    // All models failed
+    const finalErrorMsg = lastError?.message || 'Unknown error';
+    if (finalErrorMsg.includes('503') || finalErrorMsg.includes('UNAVAILABLE')) {
+      throw new Error('All AI models are currently busy. Please try again in a few moments.');
+    }
+    if (finalErrorMsg.includes('429') || finalErrorMsg.includes('quota')) {
+      throw new Error('Daily API quota exceeded. Please wait until tomorrow or use a different API key.');
+    }
+    throw new Error(`AI generation failed. Please try again later.`);
   },
 
   /**
    * Build prompt for document-based flashcard generation
    */
   buildDocumentBasedPrompt(topic: string, count: number, content: string, enableEnrichment: boolean, language: 'id' | 'en' = 'en'): string {
-    // TWEAK 1: Strictness Logic yang lebih agresif
+    // NOTE: 'topic' parameter is intentionally IGNORED when document content exists
+    // to prevent AI from focusing on filename instead of actual content
+    
     const strictnessInstruction = enableEnrichment
-      ? `\n- **Enrichment Allowed**: You may generate up to 50% related questions that go beyond the document to help deepen understanding.`
-      : `\n- **STRICTLY GROUNDED**: All questions MUST be answerable ONLY using the information provided in the <document_content> tags below.
-- **DO NOT** use outside knowledge or hallucinate facts not present in the text.
-- If the document does not mention a specific detail, DO NOT ask about it.`;
+      ? `- You may include up to 30% related questions that expand on the document's themes.`
+      : `- STRICT CONTENT-ONLY MODE: Every single question MUST be directly answerable from the text below.
+- You are FORBIDDEN from mentioning, referencing, or asking about:
+  * The filename or document name
+  * The file format or extension
+  * Any metadata (author, date, title header)
+  * Anything not explicitly written in the content
+- If the document content is too short or lacks substance, create fewer but higher quality cards.`;
 
     const languageInstruction = language === 'id'
-      ? 'Buat semua pertanyaan dan jawaban dalam Bahasa Indonesia yang jelas dan mudah dipahami.'
-      : 'Create all questions and answers in clear, easy-to-understand English.';
+      ? 'Gunakan Bahasa Indonesia yang jelas.'
+      : 'Use clear English.';
 
-    const questionTypesText = language === 'id'
-      ? `**Jenis Pertanyaan**:
-- Definisi ("Apa itu...?")
-- Penjelasan Proses ("Bagaimana cara kerja...?")
-- Hubungan ("Bagaimana kaitan antara A dan B?")`
-      : `**Question Types**:
-- Definition
-- Process/Explanation
-- Relationship`;
+    const examplesText = language === 'id'
+      ? `**CONTOH PERTANYAAN BURUK (DILARANG)**:
+❌ "Apa nama file dokumen ini?"
+❌ "Apa judul dokumen?"
+❌ "Dokumen ini membahas tentang apa?"
+❌ "Siapa penulis dokumen ini?"
 
-    // TWEAK 2: Hapus limit 8000 char jika pakai Gemini Flash (Context window dia besar, sayang kalau dipotong)
-    // Jika memang harus dipotong, pastikan potongannya rapi.
-    const processedContent = content.length > 30000 ? content.substring(0, 30000) + '...(truncated)' : content;
+**CONTOH PERTANYAAN BAGUS**:
+✅ "Apa yang dimaksud dengan [konsep yang dijelaskan di teks]?"
+✅ "Bagaimana proses [sesuatu yang dibahas detail di teks]?"
+✅ "Mengapa [alasan yang disebutkan di teks] penting?"`
+      : `**BAD QUESTIONS (FORBIDDEN)**:
+❌ "What is the filename?"
+❌ "What is the document title?"
+❌ "What is this document about?"
+❌ "Who wrote this document?"
 
-    // TWEAK 3: Struktur Prompt dengan XML Tagging
-    return `You are an expert educational content creator.
+**GOOD QUESTIONS**:
+✅ "What is [concept explained in text]?"
+✅ "How does [process described in text] work?"
+✅ "Why is [reason mentioned in text] important?"`;
 
-**Task**: Create exactly ${count} high-quality flashcards based on the provided document about "${topic}".
+    const processedContent = content.length > 50000 ? content.substring(0, 50000) + '...(truncated)' : content;
+
+    // Temperature akan dinaikkan untuk memberikan variasi yang lebih baik
+    return `You are creating flashcards for studying. Your ONLY source of information is the text inside <content> tags below.
+
+## ABSOLUTE RULES - VIOLATION = FAILURE
+1. NEVER ask about the filename, document title, or any metadata
+2. NEVER ask "What is this document about?" or similar meta-questions  
+3. ONLY ask about specific facts, concepts, or processes EXPLICITLY stated in the content
+4. If you cannot find ${count} substantive topics in the content, create fewer cards rather than asking about metadata
+
+## Task
+Create ${count} flashcards. ${languageInstruction}
 
 ${strictnessInstruction}
 
-**Instructions**:
-1. ${languageInstruction}
-2. Extract key concepts directly from the source text.
-3. Each flashcard must test ONE specific concept.
-4. Use Active Recall phrasing.
-5. Answers must be concise (2-4 sentences).
+${examplesText}
 
-${questionTypesText}
-
-<document_content>
+<content>
 ${processedContent}
-</document_content>
+</content>
 
-**Response Format** (JSON only):
+## Output Format (JSON only)
 {
-  "title": "Concise title",
+  "title": "Brief topic summary based on content themes",
   "cards": [
-    {
-      "question": "Question",
-      "answer": "Answer"
-    }
+    {"question": "Specific question about content", "answer": "Answer from content (2-3 sentences)"}
   ]
 }
-Generate exactly ${count} cards. JSON format only.`;
+
+IMPORTANT: Read the content carefully. Extract the main concepts and create questions about THOSE concepts only. Ignore any filename or metadata completely.`;
   },
 
   // ... (buildTopicBasedPrompt tetap sama) ...
