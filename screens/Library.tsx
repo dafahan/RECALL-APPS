@@ -228,7 +228,11 @@ export const Library: React.FC = () => {
           activeOpacity={1}
           onPress={() => setShowMenu(false)}
         >
-          <View style={[styles.menuModal, { backgroundColor: colors.card }]}>
+          <View style={[styles.menuModal, {
+            backgroundColor: colors.background === '#23220f' ? '#2d2c15' : '#ffffff',
+            borderWidth: 1,
+            borderColor: colors.background === '#23220f' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
+          }]}>
             <TouchableOpacity style={styles.menuItem} onPress={handleRename}>
               <MaterialIcons name="edit" size={20} color={colors.text} />
               <Text style={[styles.menuText, { color: colors.text }]}>Rename Deck</Text>
@@ -255,10 +259,18 @@ export const Library: React.FC = () => {
           onPress={() => setShowRenameModal(false)}
         >
           <TouchableOpacity activeOpacity={1} onPress={(e) => e.stopPropagation()}>
-            <View style={[styles.renameModal, { backgroundColor: colors.card }]}>
+            <View style={[styles.renameModal, {
+              backgroundColor: colors.background === '#23220f' ? '#2d2c15' : '#ffffff',
+              borderWidth: 1,
+              borderColor: colors.background === '#23220f' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
+            }]}>
               <Text style={[styles.modalTitle, { color: colors.text }]}>Rename Deck</Text>
               <TextInput
-                style={[styles.renameInput, { color: colors.text, borderColor: colors.background === '#23220f' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }]}
+                style={[styles.renameInput, {
+                  color: colors.text,
+                  backgroundColor: colors.background === '#23220f' ? 'rgba(255,255,255,0.05)' : '#f9f9f9',
+                  borderColor: colors.background === '#23220f' ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)',
+                }]}
                 value={renameText}
                 onChangeText={setRenameText}
                 placeholder="Enter new name"
@@ -267,7 +279,7 @@ export const Library: React.FC = () => {
               />
               <View style={styles.modalActions}>
                 <TouchableOpacity
-                  style={[styles.modalBtn, styles.cancelBtn, { backgroundColor: colors.background === '#23220f' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)' }]}
+                  style={[styles.modalBtn, styles.cancelBtn, { backgroundColor: colors.background === '#23220f' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)' }]}
                   onPress={() => setShowRenameModal(false)}
                 >
                   <Text style={[styles.cancelBtnText, { color: colors.textSecondary }]}>Cancel</Text>
