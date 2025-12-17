@@ -19,7 +19,7 @@ export const AppInfo: React.FC = () => {
     <Layout>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <MaterialIcons name="arrow-back" size={24} color="white" />
+          <MaterialIcons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { color: colors.text }]}>{t('appInfoTitle')}</Text>
         <View style={{ width: 40 }} />
@@ -48,7 +48,7 @@ export const AppInfo: React.FC = () => {
           {t('appInfoFeatures')}
         </Text>
         <View style={[styles.featuresCard, { backgroundColor: colors.card }]}>
-          <View style={styles.featureItem}>
+          <View style={[styles.featureItem, { borderBottomColor: colors.border }]}>
             <View style={styles.featureIcon}>
               <MaterialIcons name="picture-as-pdf" size={20} color="white" />
             </View>
@@ -62,7 +62,7 @@ export const AppInfo: React.FC = () => {
             </View>
           </View>
 
-          <View style={styles.featureItem}>
+          <View style={[styles.featureItem, { borderBottomColor: colors.border }]}>
             <View style={styles.featureIcon}>
               <MaterialIcons name="auto-awesome" size={20} color="white" />
             </View>
@@ -76,7 +76,7 @@ export const AppInfo: React.FC = () => {
             </View>
           </View>
 
-          <View style={styles.featureItem}>
+          <View style={[styles.featureItem, { borderBottomColor: colors.border }]}>
             <View style={styles.featureIcon}>
               <MaterialIcons name="flash-on" size={20} color="white" />
             </View>
@@ -125,29 +125,29 @@ export const AppInfo: React.FC = () => {
 
         <View style={[styles.linksCard, { backgroundColor: colors.card }]}>
           <TouchableOpacity
-            style={styles.linkItem}
+            style={[styles.linkItem, { borderBottomColor: colors.border }]}
             onPress={() => openLink('https://github.com/dafahan/RECALL-APPS')}
           >
             <View style={styles.linkLeft}>
-              <MaterialIcons name="code" size={20} color="white" />
+              <MaterialIcons name="code" size={20} color={colors.text} />
               <Text style={[styles.linkText, { color: colors.text }]}>
                 {t('appInfoSourceCode')}
               </Text>
             </View>
-            <MaterialIcons name="open-in-new" size={20} color="#666" />
+            <MaterialIcons name="open-in-new" size={20} color={colors.textSecondary} />
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={styles.linkItem}
+            style={[styles.linkItem, { borderBottomColor: colors.border }]}
             onPress={() => openLink('https://aistudio.google.com/')}
           >
             <View style={styles.linkLeft}>
-              <MaterialIcons name="key" size={20} color="white" />
+              <MaterialIcons name="key" size={20} color={colors.text} />
               <Text style={[styles.linkText, { color: colors.text }]}>
                 {t('appInfoGetApiKey')}
               </Text>
             </View>
-            <MaterialIcons name="open-in-new" size={20} color="#666" />
+            <MaterialIcons name="open-in-new" size={20} color={colors.textSecondary} />
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -155,12 +155,12 @@ export const AppInfo: React.FC = () => {
             onPress={() => openLink('https://github.com/dafahan/RECALL-APPS/issues')}
           >
             <View style={styles.linkLeft}>
-              <MaterialIcons name="bug-report" size={20} color="white" />
+              <MaterialIcons name="bug-report" size={20} color={colors.text} />
               <Text style={[styles.linkText, { color: colors.text }]}>
                 {t('appInfoReportIssue')}
               </Text>
             </View>
-            <MaterialIcons name="open-in-new" size={20} color="#666" />
+            <MaterialIcons name="open-in-new" size={20} color={colors.textSecondary} />
           </TouchableOpacity>
         </View>
 
@@ -265,7 +265,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255,255,255,0.05)',
     gap: 12
   },
   featureIcon: {
@@ -312,8 +311,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255,255,255,0.05)'
+    borderBottomWidth: 1
   },
   linkLeft: {
     flexDirection: 'row',

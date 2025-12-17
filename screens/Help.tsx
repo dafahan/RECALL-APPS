@@ -48,7 +48,7 @@ export const Help: React.FC = () => {
     <Layout>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <MaterialIcons name="arrow-back" size={24} color="white" />
+          <MaterialIcons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { color: colors.text }]}>{t('helpTitle')}</Text>
         <View style={{ width: 40 }} />
@@ -69,7 +69,7 @@ export const Help: React.FC = () => {
           {t('helpGettingStarted')}
         </Text>
         <View style={[styles.stepsCard, { backgroundColor: colors.card }]}>
-          <View style={styles.stepItem}>
+          <View style={[styles.stepItem, { borderBottomColor: colors.border }]}>
             <View style={styles.stepNumber}>
               <Text style={styles.stepNumberText}>1</Text>
             </View>
@@ -81,7 +81,7 @@ export const Help: React.FC = () => {
             </View>
           </View>
 
-          <View style={styles.stepItem}>
+          <View style={[styles.stepItem, { borderBottomColor: colors.border }]}>
             <View style={styles.stepNumber}>
               <Text style={styles.stepNumberText}>2</Text>
             </View>
@@ -93,7 +93,7 @@ export const Help: React.FC = () => {
             </View>
           </View>
 
-          <View style={styles.stepItem}>
+          <View style={[styles.stepItem, { borderBottomColor: colors.border }]}>
             <View style={styles.stepNumber}>
               <Text style={styles.stepNumberText}>3</Text>
             </View>
@@ -123,7 +123,7 @@ export const Help: React.FC = () => {
         </Text>
         <View style={[styles.faqCard, { backgroundColor: colors.card }]}>
           {faqItems.map((item, index) => (
-            <View key={index} style={[styles.faqItem, index === faqItems.length - 1 && { borderBottomWidth: 0 }]}>
+            <View key={index} style={[styles.faqItem, { borderBottomColor: colors.border }, index === faqItems.length - 1 && { borderBottomWidth: 0 }]}>
               <TouchableOpacity
                 style={styles.faqQuestion}
                 onPress={() => toggleExpand(index)}
@@ -134,7 +134,7 @@ export const Help: React.FC = () => {
                 <MaterialIcons
                   name={expandedIndex === index ? 'expand-less' : 'expand-more'}
                   size={24}
-                  color={colors.textSecondary}
+                  color={colors.text}
                 />
               </TouchableOpacity>
               {expandedIndex === index && (
@@ -224,7 +224,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255,255,255,0.05)',
     gap: 16
   },
   stepNumber: {
@@ -257,8 +256,7 @@ const styles = StyleSheet.create({
     marginBottom: 24
   },
   faqItem: {
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255,255,255,0.05)'
+    borderBottomWidth: 1
   },
   faqQuestion: {
     flexDirection: 'row',

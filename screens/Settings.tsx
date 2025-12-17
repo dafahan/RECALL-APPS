@@ -89,7 +89,7 @@ export const Settings: React.FC = () => {
           style={styles.iconBtn}
           onPress={() => navigation.navigate('Help')}
         >
-          <MaterialIcons name="help" size={24} color="white" />
+          <MaterialIcons name="help" size={24} color={colors.text} />
         </TouchableOpacity>
       </View>
 
