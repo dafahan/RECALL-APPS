@@ -32,7 +32,8 @@ export const aiService = {
     count: number,
     fileContent?: string,
     fileUri?: string,
-    mimeType?: string
+    mimeType?: string,
+    language: 'id' | 'en' = 'en'
   ): Promise<{ title: string; cards: { question: string; answer: string }[] }> {
     // Get API key from settings
     const settings = await db.getSettings();
@@ -55,8 +56,8 @@ export const aiService = {
 
     // Build the prompt based on whether we have document content
     const prompt = hasDocumentContent
-      ? this.buildDocumentBasedPrompt(topic, count, documentContent, settings.aiSuggestions)
-      : this.buildTopicBasedPrompt(topic, count);
+      ? this.buildDocumentBasedPrompt(topic, count, documentContent, settings.aiSuggestions, language)
+      : this.buildTopicBasedPrompt(topic, count, language);
 
     try {
       const response = await ai.models.generateContent({
@@ -96,10 +97,28 @@ export const aiService = {
   /**
    * Build prompt for document-based flashcard generation
    */
-  buildDocumentBasedPrompt(topic: string, count: number, content: string, enableEnrichment: boolean): string {
+  buildDocumentBasedPrompt(topic: string, count: number, content: string, enableEnrichment: boolean, language: 'id' | 'en' = 'en'): string {
     const enrichmentInstruction = enableEnrichment
       ? `\n- You may also generate max 50% related questions that go beyond the document but are conceptually connected to help deepen understanding.`
       : '';
+
+    const languageInstruction = language === 'id'
+      ? 'Buat semua pertanyaan dan jawaban dalam Bahasa Indonesia yang jelas dan mudah dipahami.'
+      : 'Create all questions and answers in clear, easy-to-understand English.';
+
+    const questionTypesText = language === 'id'
+      ? `**Jenis Pertanyaan yang Digunakan**:
+- Pertanyaan definisi: "Apa itu...?", "Definisikan..."
+- Pertanyaan penjelasan: "Bagaimana... bekerja?", "Jelaskan proses..."
+- Pertanyaan perbandingan: "Apa perbedaan antara... dan...?"
+- Pertanyaan aplikasi: "Kapan Anda menggunakan...?", "Mengapa... penting?"
+- Pertanyaan hubungan: "Bagaimana... berhubungan dengan...?"`
+      : `**Question Types to Use**:
+- Definition questions: "What is...?", "Define..."
+- Explanation questions: "How does... work?", "Explain the process of..."
+- Comparison questions: "What is the difference between... and...?"
+- Application questions: "When would you use...?", "Why is... important?"
+- Relationship questions: "How does... relate to...?"`;
 
     return `You are an expert educational content creator specializing in creating effective flashcards for active recall and spaced repetition learning.
 
@@ -109,6 +128,7 @@ export const aiService = {
 ${content.substring(0, 8000)} ${content.length > 8000 ? '...(content truncated)' : ''}
 
 **Instructions**:
+${languageInstruction}
 1. **Extract Key Concepts**: Identify the most important concepts, definitions, processes, and relationships in the document
 2. **Create Focused Questions**: Each flashcard should test ONE specific concept
 3. **Use Active Recall**: Frame questions to make learners retrieve information from memory
@@ -116,12 +136,7 @@ ${content.substring(0, 8000)} ${content.length > 8000 ? '...(content truncated)'
 5. **Progressive Difficulty**: Mix basic recall questions with application/understanding questions
 6. **Avoid Ambiguity**: Questions should have clear, unambiguous answers${enrichmentInstruction}
 
-**Question Types to Use**:
-- Definition questions: "What is...?", "Define..."
-- Explanation questions: "How does... work?", "Explain the process of..."
-- Comparison questions: "What is the difference between... and...?"
-- Application questions: "When would you use...?", "Why is... important?"
-- Relationship questions: "How does... relate to...?"
+${questionTypesText}
 
 **Response Format** (JSON only):
 {
@@ -140,12 +155,33 @@ Generate exactly ${count} cards. Return only valid JSON, no markdown formatting.
   /**
    * Build prompt for topic-based flashcard generation (no document)
    */
-  buildTopicBasedPrompt(topic: string, count: number): string {
+  buildTopicBasedPrompt(topic: string, count: number, language: 'id' | 'en' = 'en'): string {
+    const languageInstruction = language === 'id'
+      ? 'Buat semua pertanyaan dan jawaban dalam Bahasa Indonesia yang jelas dan mudah dipahami.'
+      : 'Create all questions and answers in clear, easy-to-understand English.';
+
+    const questionTypesText = language === 'id'
+      ? `**Jenis Pertanyaan**:
+- Definisi dan terminologi
+- Konsep dan prinsip inti
+- Cara kerja (proses/mekanisme)
+- Aplikasi dan kasus penggunaan
+- Perbandingan dan hubungan
+- Fakta dan detail penting`
+      : `**Question Types**:
+- Definitions and terminology
+- Core concepts and principles
+- How things work (processes/mechanisms)
+- Applications and use cases
+- Comparisons and relationships
+- Important facts and details`;
+
     return `You are an expert educational content creator specializing in creating effective flashcards.
 
 **Task**: Create exactly ${count} high-quality flashcards about "${topic}".
 
 **Instructions**:
+${languageInstruction}
 1. Cover fundamental concepts and important details about "${topic}"
 2. Each flashcard should test ONE specific concept
 3. Use active recall - make learners retrieve information
@@ -153,13 +189,7 @@ Generate exactly ${count} cards. Return only valid JSON, no markdown formatting.
 5. Progress from basic to more advanced concepts
 6. Include practical applications where relevant
 
-**Question Types**:
-- Definitions and terminology
-- Core concepts and principles
-- How things work (processes/mechanisms)
-- Applications and use cases
-- Comparisons and relationships
-- Important facts and details
+${questionTypesText}
 
 **Response Format** (JSON only):
 {

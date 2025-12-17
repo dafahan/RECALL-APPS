@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, ActivityIndicator } from 'react-native';
 import { Layout, COLORS } from '../components/Layout';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -6,10 +6,18 @@ import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as DocumentPicker from 'expo-document-picker';
 import * as FileSystem from 'expo-file-system';
+import { useTranslation, i18n } from '../services/i18n';
+import { useTheme } from '../services/theme';
 
 export const Home: React.FC = () => {
   const navigation = useNavigation<any>();
   const [uploading, setUploading] = useState(false);
+  const { t } = useTranslation();
+  const { colors } = useTheme();
+
+  useEffect(() => {
+    i18n.initialize();
+  }, []);
 
   const handleUpload = async () => {
     try {
@@ -55,7 +63,7 @@ export const Home: React.FC = () => {
     } catch (error) {
       setUploading(false);
       console.error('Error picking document:', error);
-      Alert.alert('Error', 'Failed to load document. Please try again.');
+      Alert.alert(t('error'), 'Failed to load document. Please try again.');
     }
   };
 
@@ -76,9 +84,9 @@ export const Home: React.FC = () => {
         </View>
 
         <View style={styles.heroSection}>
-          <Text style={styles.heroTitle}>
-            Simplify your{'\n'}
-            <Text style={styles.heroHighlight}>study materials.</Text>
+          <Text style={[styles.heroTitle, { color: colors.text }]}>
+            {t('heroTitle')}{"\n"}
+            <Text style={styles.heroHighlight}>{t('heroHighlight')}</Text>
           </Text>
         </View>
 
@@ -90,7 +98,7 @@ export const Home: React.FC = () => {
             disabled={uploading}
           >
             <LinearGradient
-              colors={['#383821', '#2d2c15']}
+              colors={colors.background === '#23220f' ? ['#383821', '#2d2c15'] : ['#f0f0f0', '#e0e0e0']}
               style={StyleSheet.absoluteFill}
             />
             <View style={styles.dashedBorder} />
@@ -98,7 +106,7 @@ export const Home: React.FC = () => {
             {uploading ? (
               <>
                 <ActivityIndicator size="large" color={COLORS.primary} />
-                <Text style={styles.uploadingText}>Loading document...</Text>
+                <Text style={styles.uploadingText}>{t('loadingDocument')}</Text>
               </>
             ) : (
               <>
@@ -107,13 +115,13 @@ export const Home: React.FC = () => {
                 </View>
 
                 <View style={styles.uploadTextContainer}>
-                  <Text style={styles.uploadTitle}>Tap to Upload Document</Text>
-                  <Text style={styles.uploadSubtitle}>Supports PDF, DOCX, TXT</Text>
+                  <Text style={[styles.uploadTitle, { color: colors.text }]}>{t('uploadTitle')}</Text>
+                  <Text style={[styles.uploadSubtitle, { color: colors.textSecondary }]}>{t('uploadSubtitle')}</Text>
                 </View>
 
                 <View style={styles.selectBtn}>
                   <MaterialIcons name="add" size={20} color="#1c1c0d" />
-                  <Text style={styles.selectBtnText}>Select File</Text>
+                  <Text style={styles.selectBtnText}>{t('selectFile')}</Text>
                 </View>
               </>
             )}
@@ -123,7 +131,7 @@ export const Home: React.FC = () => {
         <View style={styles.privacyBadgeContainer}>
           <View style={styles.privacyBadge}>
             <MaterialIcons name="lock" size={14} color="#888" />
-            <Text style={styles.privacyText}>AI-powered processing. Private.</Text>
+            <Text style={styles.privacyText}>{t('privacyText')}</Text>
           </View>
         </View>
       </ScrollView>
@@ -146,7 +154,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'rgba(249, 245, 6, 0.2)',
+    backgroundColor: 'rgba(255, 229, 0, 0.2)',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -155,7 +163,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontSize: 20,
     fontWeight: 'bold',
-    color: COLORS.textDark,
   },
   historyBtn: {
     padding: 8,
@@ -170,12 +177,10 @@ const styles = StyleSheet.create({
   heroTitle: {
     fontSize: 32,
     fontWeight: '700',
-    color: COLORS.textDark,
     textAlign: 'center',
     lineHeight: 38,
   },
   heroHighlight: {
-    color: COLORS.textDark,
     textDecorationLine: 'underline',
     textDecorationColor: 'rgba(249, 245, 6, 0.4)',
   },
@@ -203,7 +208,7 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: 'rgba(249, 245, 6, 0.1)',
+    backgroundColor: 'rgba(255, 229, 0, 0.15)',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 20,
@@ -215,12 +220,10 @@ const styles = StyleSheet.create({
   uploadTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: COLORS.textDark,
     marginBottom: 8,
   },
   uploadSubtitle: {
     fontSize: 14,
-    color: '#888',
   },
   uploadingText: {
     marginTop: 16,

@@ -6,12 +6,14 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { db } from '../services/db';
 import { Card } from '../types';
+import { useTranslation } from '../services/i18n';
 
 const { width } = Dimensions.get('window');
 
 export const QuizActive: React.FC = () => {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
+  const { t } = useTranslation();
   const { deckId, count } = route.params || {};
 
   const [cards, setCards] = useState<Card[]>([]);
@@ -101,7 +103,7 @@ export const QuizActive: React.FC = () => {
     outputRange: [0, 1]
   });
 
-  if (loading) return <View style={styles.center}><Text style={styles.textWhite}>Loading...</Text></View>;
+  if (loading) return <View style={styles.center}><Text style={styles.textWhite}>{t('loading')}</Text></View>;
   if (!cards.length) return <View style={styles.center}><Text style={styles.textWhite}>No cards found.</Text></View>;
 
   const currentCard = cards[currentIndex];
@@ -116,8 +118,8 @@ export const QuizActive: React.FC = () => {
           </TouchableOpacity>
           <View style={styles.progressWrapper}>
             <View style={styles.progressLabels}>
-              <Text style={styles.progressLabel}>Progress</Text>
-              <Text style={styles.progressCount}>{currentIndex + 1}/{cards.length}</Text>
+              <Text style={styles.progressLabel}>{t('progress')}</Text>
+              <Text style={styles.progressCount}>{currentIndex + 1} {t('cardOf')} {cards.length}</Text>
             </View>
             <View style={styles.progressBar}>
               <View style={[styles.progressFill, { width: `${(currentIndex / cards.length) * 100}%` }]} />
@@ -139,7 +141,7 @@ export const QuizActive: React.FC = () => {
                   <MaterialIcons name="help-outline" size={32} color={COLORS.primary} />
                 </View>
                 <Text style={styles.questionText}>{currentCard.question}</Text>
-                <Text style={styles.tapText}>Tap to reveal</Text>
+                <Text style={styles.tapText}>{t('showAnswer')}</Text>
               </ScrollView>
             </Animated.View>
 
@@ -147,7 +149,7 @@ export const QuizActive: React.FC = () => {
             <Animated.View style={[styles.card, styles.cardBack, { transform: [{ rotateY: backInterpolate }], opacity: backOpacity }]}>
               <View style={styles.recapBar}>
                 <MaterialIcons name="help-outline" size={16} color={COLORS.primary} />
-                <Text style={styles.recapLabel}>Question</Text>
+                <Text style={styles.recapLabel}>{t('questionCount')}</Text>
                 <Text numberOfLines={1} style={styles.recapText}>{currentCard.question}</Text>
               </View>
 
@@ -175,7 +177,7 @@ export const QuizActive: React.FC = () => {
              disabled={!isFlipped}
            >
               <MaterialIcons name="close" size={24} color="#991b1b" />
-              <Text style={styles.missedText}>Missed</Text>
+              <Text style={styles.missedText}>{t('incorrect')}</Text>
            </TouchableOpacity>
 
            <TouchableOpacity 
@@ -184,7 +186,7 @@ export const QuizActive: React.FC = () => {
              disabled={!isFlipped}
            >
               <MaterialIcons name="check" size={24} color="#115e59" />
-              <Text style={styles.masteredText}>Knew it</Text>
+              <Text style={styles.masteredText}>{t('correct')}</Text>
            </TouchableOpacity>
         </View>
       </View>

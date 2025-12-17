@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet, ViewStyle } from 'react-nativ
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import { useTheme } from '../services/theme';
 
 // Simple Theme Constants
 export const COLORS = {
@@ -17,8 +18,10 @@ export const COLORS = {
 };
 
 export const Layout: React.FC<{ children: React.ReactNode, hideNav?: boolean }> = ({ children, hideNav }) => {
+  const { colors } = useTheme();
+  
   return (
-    <SafeAreaView style={styles.container} edges={['top', 'left', 'right', 'bottom']}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top', 'left', 'right', 'bottom']}>
       <View style={styles.content}>
         {children}
       </View>
@@ -30,6 +33,7 @@ export const Layout: React.FC<{ children: React.ReactNode, hideNav?: boolean }> 
 export const BottomNav: React.FC = () => {
   const navigation = useNavigation<any>();
   const route = useRoute();
+  const { colors } = useTheme();
   
   const currentRoute = route.name;
 
@@ -45,7 +49,7 @@ export const BottomNav: React.FC = () => {
           <MaterialIcons 
             name={icon} 
             size={26} 
-            color={isActive ? COLORS.primary : '#666'} 
+            color={isActive ? '#FFE500' : '#666'} 
           />
         </View>
         <Text style={[styles.navLabel, isActive && styles.activeNavLabel]}>{label}</Text>
@@ -54,7 +58,7 @@ export const BottomNav: React.FC = () => {
   };
 
   return (
-    <View style={styles.bottomNav}>
+    <View style={[styles.bottomNav, { backgroundColor: colors.navBg, borderTopColor: colors.navBorder }]}>
       <NavItem name="Home" icon="home" label="Home" />
       <NavItem name="Library" icon="library-books" label="Library" />
       <NavItem name="Settings" icon="settings" label="Settings" />
@@ -65,16 +69,13 @@ export const BottomNav: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.bgDark, // Defaulting to dark mode for "App" feel
   },
   content: {
     flex: 1,
   },
   bottomNav: {
     flexDirection: 'row',
-    backgroundColor: '#1c1c0d',
     borderTopWidth: 1,
-    borderTopColor: '#333',
     paddingVertical: 12,
     paddingHorizontal: 16,
   },
@@ -90,7 +91,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   activeIconContainer: {
-    backgroundColor: 'rgba(249, 245, 6, 0.1)',
+    backgroundColor: 'rgba(255, 229, 0, 0.15)',
   },
   navLabel: {
     fontSize: 10,
@@ -98,6 +99,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   activeNavLabel: {
-    color: COLORS.primary,
+    color: '#FFE500',
   },
 });

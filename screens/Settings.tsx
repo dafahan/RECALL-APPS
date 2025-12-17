@@ -5,58 +5,76 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { db } from '../services/db';
 import { Settings as SettingsType } from '../types';
+import { useTranslation, i18n } from '../services/i18n';
+import { useTheme } from '../services/theme';
 
 export const Settings: React.FC = () => {
   const navigation = useNavigation<any>();
+  const { t, setLanguage } = useTranslation();
+  const { toggleTheme, colors } = useTheme();
   const [settings, setSettings] = useState<SettingsType>({
     darkMode: true,
     apiKey: '',
     dailyReminder: true,
-    aiSuggestions: false
+    aiSuggestions: false,
+    language: 'en'
   });
   const [showAPIModal, setShowAPIModal] = useState(false);
   const [apiKeyInput, setApiKeyInput] = useState('');
 
   useEffect(() => {
     loadSettings();
+    i18n.initialize();
   }, []);
 
   const loadSettings = async () => {
     const loadedSettings = await db.getSettings();
     setSettings(loadedSettings);
     setApiKeyInput(loadedSettings.apiKey || '');
+    // Update i18n language
+    i18n.setLanguage(loadedSettings.language || 'en');
   };
 
   const updateSetting = async (key: keyof SettingsType, value: any) => {
     const newSettings = { ...settings, [key]: value };
     setSettings(newSettings);
     await db.saveSettings(newSettings);
+    
+    // Update i18n language if language setting changed
+    if (key === 'language') {
+      i18n.setLanguage(value);
+    }
+    
+    // Update theme if dark mode changed
+    if (key === 'darkMode') {
+      toggleTheme();
+    }
   };
 
   const saveAPIKey = async () => {
     if (!apiKeyInput.trim()) {
-      Alert.alert('Error', 'API Key cannot be empty');
+      Alert.alert(t('error'), t('apiKeyEmpty'));
       return;
     }
 
     await updateSetting('apiKey', apiKeyInput.trim());
     setShowAPIModal(false);
-    Alert.alert('Success', 'API Key saved successfully');
+    Alert.alert(t('success'), t('apiKeySaved'));
   };
 
   const clearAPIKey = async () => {
     Alert.alert(
-      'Clear API Key',
-      'Are you sure you want to clear your API key?',
+      t('clearApiKey'),
+      t('clearApiKeyConfirm'),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('cancel'), style: 'cancel' },
         {
-          text: 'Clear',
+          text: t('clear'),
           style: 'destructive',
           onPress: async () => {
             setApiKeyInput('');
             await updateSetting('apiKey', '');
-            Alert.alert('Success', 'API Key cleared');
+            Alert.alert(t('success'), t('apiKeyCleared'));
           }
         }
       ]
@@ -66,27 +84,27 @@ export const Settings: React.FC = () => {
   return (
     <Layout>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Settings</Text>
+        <Text style={[styles.headerTitle, { color: colors.text }]}>{t('settingsTitle')}</Text>
         <TouchableOpacity style={styles.iconBtn}>
           <MaterialIcons name="help" size={24} color="white" />
         </TouchableOpacity>
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        <Text style={styles.sectionTitle}>AI Configuration</Text>
-        <View style={styles.menuGroup}>
+        <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>{t('aiConfiguration')}</Text>
+        <View style={[styles.menuGroup, { backgroundColor: colors.card }]}>
           <TouchableOpacity
             style={styles.menuItem}
             onPress={() => setShowAPIModal(true)}
           >
             <View style={styles.menuLeft}>
-              <View style={[styles.menuIcon, { backgroundColor: 'rgba(249, 245, 6, 0.2)' }]}>
-                <MaterialIcons name="key" size={20} color="#f9f506" />
+              <View style={styles.menuIcon}>
+                <MaterialIcons name="key" size={20} color="white" />
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={styles.menuText}>Gemini API Key</Text>
-                <Text style={styles.menuSubtext}>
-                  {settings.apiKey ? '••••••' + settings.apiKey.slice(-4) : 'Not configured'}
+                <Text style={[styles.menuText, { color: colors.text }]}>{t('geminiApiKey')}</Text>
+                <Text style={[styles.menuSubtext, { color: colors.textSecondary }]}>
+                  {settings.apiKey ? '••••••' + settings.apiKey.slice(-4) : t('notConfigured')}
                 </Text>
               </View>
             </View>
@@ -95,13 +113,13 @@ export const Settings: React.FC = () => {
 
           <View style={[styles.menuItem, { borderBottomWidth: 0 }]}>
             <View style={styles.menuLeft}>
-              <View style={[styles.menuIcon, { backgroundColor: 'rgba(168, 85, 247, 0.2)' }]}>
-                <MaterialIcons name="auto-awesome" size={20} color="#a855f7" />
+              <View style={styles.menuIcon}>
+                <MaterialIcons name="auto-awesome" size={20} color="white" />
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={styles.menuText}>Smart Enrichment</Text>
-                <Text style={styles.menuSubtext}>
-                  Generate related questions beyond document
+                <Text style={[styles.menuText, { color: colors.text }]}>{t('smartEnrichment')}</Text>
+                <Text style={[styles.menuSubtext, { color: colors.textSecondary }]}>
+                  {t('smartEnrichmentDesc')}
                 </Text>
               </View>
             </View>
@@ -114,14 +132,35 @@ export const Settings: React.FC = () => {
           </View>
         </View>
 
-        <Text style={styles.sectionTitle}>Preferences</Text>
-        <View style={styles.menuGroup}>
+        <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>{t('preferences')}</Text>
+        <View style={[styles.menuGroup, { backgroundColor: colors.card }]}>
           <View style={styles.menuItem}>
             <View style={styles.menuLeft}>
-              <View style={[styles.menuIcon, { backgroundColor: 'rgba(234, 179, 8, 0.2)' }]}>
-                <MaterialIcons name="notifications" size={20} color="#ca8a04" />
+              <View style={styles.menuIcon}>
+                <MaterialIcons name="language" size={20} color="white" />
               </View>
-              <Text style={styles.menuText}>Daily Reminder</Text>
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.menuText, { color: colors.text }]}>{t('language')}</Text>
+                <Text style={[styles.menuSubtext, { color: colors.textSecondary }]}>
+                  {settings.language === 'id' ? 'Bahasa Indonesia' : 'English'}
+                </Text>
+              </View>
+            </View>
+            <TouchableOpacity
+              style={styles.languageToggle}
+              onPress={() => updateSetting('language', settings.language === 'id' ? 'en' : 'id')}
+            >
+              <Text style={styles.languageToggleText}>
+                {settings.language === 'id' ? 'ID' : 'EN'}
+              </Text>
+            </TouchableOpacity>
+          </View>
+          <View style={styles.menuItem}>
+            <View style={styles.menuLeft}>
+              <View style={styles.menuIcon}>
+                <MaterialIcons name="notifications" size={20} color="white" />
+              </View>
+              <Text style={[styles.menuText, { color: colors.text }]}>{t('dailyReminder')}</Text>
             </View>
             <Switch
               value={settings.dailyReminder}
@@ -132,37 +171,37 @@ export const Settings: React.FC = () => {
           </View>
           <View style={[styles.menuItem, { borderBottomWidth: 0 }]}>
             <View style={styles.menuLeft}>
-              <View style={[styles.menuIcon, { backgroundColor: 'rgba(147, 51, 234, 0.2)' }]}>
-                <MaterialIcons name="dark-mode" size={20} color="#9333ea" />
+              <View style={styles.menuIcon}>
+                <MaterialIcons name="dark-mode" size={20} color="white" />
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={styles.menuText}>Dark Mode</Text>
-                <Text style={styles.menuSubtext}>Always enabled for better focus</Text>
+                <Text style={[styles.menuText, { color: colors.text }]}>{t('darkMode')}</Text>
+                <Text style={[styles.menuSubtext, { color: colors.textSecondary }]}>{t('darkModeDesc')}</Text>
               </View>
             </View>
             <Switch
-              value={true}
-              disabled={true}
+              value={settings.darkMode}
+              onValueChange={(val) => updateSetting('darkMode', val)}
               trackColor={{ true: COLORS.primary }}
               thumbColor="white"
             />
           </View>
         </View>
 
-        <Text style={styles.sectionTitle}>About Recall</Text>
-        <View style={styles.menuGroup}>
+        <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>{t('aboutRecall')}</Text>
+        <View style={[styles.menuGroup, { backgroundColor: colors.card }]}>
           <TouchableOpacity style={[styles.menuItem, { borderBottomWidth: 0 }]}>
             <View style={styles.menuLeft}>
-              <View style={[styles.menuIcon, { backgroundColor: 'rgba(255,255,255,0.1)' }]}>
-                <MaterialIcons name="info" size={20} color="#aaa" />
+              <View style={styles.menuIcon}>
+                <MaterialIcons name="info" size={20} color="white" />
               </View>
-              <Text style={styles.menuText}>App Info</Text>
+              <Text style={[styles.menuText, { color: colors.text }]}>{t('appInfo')}</Text>
             </View>
             <MaterialIcons name="chevron-right" size={24} color="#666" />
           </TouchableOpacity>
         </View>
 
-        <Text style={styles.version}>Version 1.0.0</Text>
+        <Text style={styles.version}>{t('version')}</Text>
       </ScrollView>
 
       {/* API Key Modal */}
@@ -175,20 +214,19 @@ export const Settings: React.FC = () => {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Gemini API Key</Text>
+              <Text style={styles.modalTitle}>{t('apiKeyTitle')}</Text>
               <TouchableOpacity onPress={() => setShowAPIModal(false)}>
                 <MaterialIcons name="close" size={24} color="white" />
               </TouchableOpacity>
             </View>
 
             <Text style={styles.modalDescription}>
-              Enter your Gemini API key to enable AI-powered flashcard generation.
-              You can get a free API key from Google AI Studio.
+              {t('apiKeyDescription')}
             </Text>
 
             <TextInput
               style={styles.apiInput}
-              placeholder="Enter Gemini API Key"
+              placeholder={t('enterApiKey')}
               placeholderTextColor="#666"
               value={apiKeyInput}
               onChangeText={setApiKeyInput}
@@ -202,14 +240,14 @@ export const Settings: React.FC = () => {
                 style={[styles.modalButton, styles.clearButton]}
                 onPress={clearAPIKey}
               >
-                <Text style={styles.clearButtonText}>Clear</Text>
+                <Text style={styles.clearButtonText}>{t('clear')}</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
                 style={[styles.modalButton, styles.saveButton]}
                 onPress={saveAPIKey}
               >
-                <Text style={styles.saveButtonText}>Save</Text>
+                <Text style={styles.saveButtonText}>{t('save')}</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -229,7 +267,6 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: 'white'
   },
   iconBtn: {
     width: 40,
@@ -246,13 +283,11 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 12,
     fontWeight: 'bold',
-    color: '#666',
     textTransform: 'uppercase',
     marginBottom: 12,
     marginLeft: 4
   },
   menuGroup: {
-    backgroundColor: 'rgba(255,255,255,0.05)',
     borderRadius: 20,
     marginBottom: 32
   },
@@ -277,16 +312,15 @@ const styles = StyleSheet.create({
     height: 32,
     borderRadius: 8,
     alignItems: 'center',
-    justifyContent: 'center'
+    justifyContent: 'center',
+    backgroundColor: '#a855f7'
   },
   menuText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#ddd'
   },
   menuSubtext: {
     fontSize: 12,
-    color: '#888',
     marginTop: 2
   },
   version: {
@@ -357,5 +391,18 @@ const styles = StyleSheet.create({
   saveButtonText: {
     color: '#1c1c0d',
     fontWeight: 'bold'
+  },
+  languageToggle: {
+    backgroundColor: COLORS.primary,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    minWidth: 50,
+    alignItems: 'center'
+  },
+  languageToggleText: {
+    color: '#1c1c0d',
+    fontWeight: 'bold',
+    fontSize: 12
   }
 });

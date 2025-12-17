@@ -5,14 +5,16 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { aiService } from '../services/ai';
 import { db } from '../services/db';
+import { useTranslation } from '../services/i18n';
 
 export const Processing: React.FC = () => {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
+  const { t } = useTranslation();
   const { topic = "Study Session", count = 5, fileName, fileUri, fileContent, mimeType } = route.params || {};
 
   const [progress, setProgress] = useState(0);
-  const [statusText, setStatusText] = useState("Initializing...");
+  const [statusText, setStatusText] = useState("");
   
   // Animations
   const pulseAnim = useRef(new Animated.Value(1)).current;
@@ -52,7 +54,7 @@ export const Processing: React.FC = () => {
 
       if (!settings.apiKey) {
         if (!isMounted) return;
-        setStatusText("API Key Not Configured");
+        setStatusText(t('apiKeyNotConfigured'));
         setProgress(0);
 
         setTimeout(() => {
@@ -63,20 +65,20 @@ export const Processing: React.FC = () => {
         return;
       }
 
-      setStatusText("Reading document...");
+      setStatusText(t('readingDocument'));
       setProgress(10);
 
       const startTime = Date.now();
-      setStatusText("Consulting Gemini AI...");
+      setStatusText(t('consultingAI'));
       setProgress(30);
 
       try {
-        const result = await aiService.generateFlashcards(topic, count, fileContent, fileUri, mimeType);
+        const result = await aiService.generateFlashcards(topic, count, fileContent, fileUri, mimeType, settings.language || 'en');
 
         if (!isMounted) return;
 
         setProgress(80);
-        setStatusText("Creating Flashcards...");
+        setStatusText(t('creatingFlashcards'));
 
         const elapsedTime = Date.now() - startTime;
         if (elapsedTime < 2000) {
@@ -96,7 +98,7 @@ export const Processing: React.FC = () => {
         if (!isMounted) return;
 
         if (e.message?.includes('API key')) {
-          setStatusText("Invalid API Key");
+          setStatusText(t('invalidApiKey'));
           setTimeout(() => {
             if (isMounted) {
               navigation.replace('Settings');
@@ -133,13 +135,13 @@ export const Processing: React.FC = () => {
           <View style={styles.textWrapper}>
             <Text style={styles.statusTitle}>{statusText}</Text>
             <Text style={styles.statusSubtitle}>
-              Extracting key concepts & generating {count} cards...
+              {t('extractingConcepts')} {count} {t('cards').toLowerCase()}...
             </Text>
           </View>
 
           <View style={styles.progressContainer}>
             <View style={styles.progressHeader}>
-              <Text style={styles.progressLabel}>Processing</Text>
+              <Text style={styles.progressLabel}>{t('processing')}</Text>
               <Text style={styles.progressValue}>{progress}%</Text>
             </View>
             <View style={styles.track}>
@@ -150,7 +152,7 @@ export const Processing: React.FC = () => {
 
         <View style={styles.footer}>
           <TouchableOpacity onPress={() => navigation.navigate('Home')} style={styles.cancelBtn}>
-            <Text style={styles.cancelText}>Cancel</Text>
+            <Text style={styles.cancelText}>{t('cancel')}</Text>
           </TouchableOpacity>
         </View>
       </View>

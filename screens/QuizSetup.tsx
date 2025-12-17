@@ -4,10 +4,12 @@ import { Layout, COLORS } from '../components/Layout';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useTranslation } from '../services/i18n';
 
 export const QuizSetup: React.FC = () => {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
+  const { t } = useTranslation();
   const { deckId, topic, fileName, fileUri, fileContent, mimeType } = route.params || {};
 
   const [cardCount, setCardCount] = useState(10);
@@ -54,15 +56,15 @@ export const QuizSetup: React.FC = () => {
 
         <View style={styles.titleContainer}>
           <Text style={styles.title}>
-            {isNewDeck ? 'New Session' : 'Ready to Recall?'}
+            {isNewDeck ? t('newSession') : t('readyToRecall')}
           </Text>
           <Text style={styles.subtitle}>
-             {isNewDeck ? `Generating cards for: ${displayTopic.slice(0, 20)}...` : 'Customize your experience'}
+             {isNewDeck ? `${t('generatingCards')} ${displayTopic.slice(0, 20)}...` : t('customizeExperience')}
           </Text>
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionLabel}>Study Depth</Text>
+          <Text style={styles.sectionLabel}>{t('studyDepth')}</Text>
           <View style={styles.optionsGrid}>
             {[5, 10, 15].map(val => (
               <TouchableOpacity 
@@ -76,7 +78,7 @@ export const QuizSetup: React.FC = () => {
                 <Text style={[styles.optionValue, cardCount === val && styles.optionValueActive]}>
                   {val}
                 </Text>
-                <Text style={styles.optionLabel}>Cards</Text>
+                <Text style={styles.optionLabel}>{t('cards')}</Text>
                 {cardCount === val && (
                   <View style={styles.checkIcon}>
                      <MaterialIcons name="check-circle" size={18} color="black" />
@@ -90,7 +92,7 @@ export const QuizSetup: React.FC = () => {
         <View style={styles.infoBox}>
           <MaterialIcons name="info" size={20} color="#888" />
           <Text style={styles.infoText}>
-            Short sessions are best for daily retention. {cardCount} cards take ~{Math.ceil(cardCount * 0.5)}m.
+            {t('infoText')} {cardCount} {t('cards').toLowerCase()} ~{Math.ceil(cardCount * 0.5)}m.
           </Text>
         </View>
       </View>
@@ -102,7 +104,7 @@ export const QuizSetup: React.FC = () => {
           activeOpacity={0.9}
         >
           <MaterialIcons name={isNewDeck ? "auto-awesome" : "flash-on"} size={24} color="#1c1c0d" />
-          <Text style={styles.startBtnText}>{isNewDeck ? 'Process & Generate' : 'Start Quiz'}</Text>
+          <Text style={styles.startBtnText}>{isNewDeck ? 'Process & Generate' : t('startQuiz')}</Text>
           <MaterialIcons name="arrow-forward" size={24} color="#1c1c0d" style={{ marginLeft: 'auto' }} />
         </TouchableOpacity>
       </View>

@@ -6,10 +6,14 @@ import { useNavigation, useIsFocused } from '@react-navigation/native';
 import { db } from '../services/db';
 import { Deck } from '../types';
 import { COLORS } from '../components/Layout';
+import { useTranslation } from '../services/i18n';
+import { useTheme } from '../services/theme';
 
 export const Library: React.FC = () => {
   const navigation = useNavigation<any>();
   const isFocused = useIsFocused();
+  const { t } = useTranslation();
+  const { colors } = useTheme();
   const [decks, setDecks] = useState<Deck[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -44,16 +48,16 @@ export const Library: React.FC = () => {
 
   return (
     <Layout>
-      <View style={styles.header}>
+      <View style={[styles.header, { backgroundColor: colors.surface }]}>
         <View style={styles.headerTop}>
-          <Text style={styles.headerTitle}>Library</Text>
+          <Text style={[styles.headerTitle, { color: colors.text }]}>{t('library')}</Text>
         </View>
-        <View style={styles.searchContainer}>
-          <MaterialIcons name="search" size={20} color="#666" style={styles.searchIcon} />
+        <View style={[styles.searchContainer, { backgroundColor: colors.card }]}>
+          <MaterialIcons name="search" size={20} color={colors.textSecondary} style={styles.searchIcon} />
           <TextInput
-            style={styles.searchInput}
+            style={[styles.searchInput, { color: colors.text }]}
             placeholder="Search your decks..."
-            placeholderTextColor="#666"
+            placeholderTextColor={colors.textSecondary}
             value={searchQuery}
             onChangeText={setSearchQuery}
           />
@@ -71,12 +75,12 @@ export const Library: React.FC = () => {
           style={styles.uploadBtn}
         >
           <MaterialIcons name="add" size={24} color="#1c1c0d" />
-          <Text style={styles.uploadBtnText}>Upload New Document</Text>
+          <Text style={styles.uploadBtnText}>{t('uploadNewDocument')}</Text>
         </TouchableOpacity>
 
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>
-            {searchQuery ? `Search Results (${filteredDecks.length})` : 'Your Decks'}
+            {searchQuery ? `Search Results (${filteredDecks.length})` : t('yourDecks')}
           </Text>
         </View>
 
@@ -84,12 +88,12 @@ export const Library: React.FC = () => {
           <View style={styles.emptyState}>
             <MaterialIcons name="folder-open" size={64} color="#444" />
             <Text style={styles.emptyTitle}>
-              {searchQuery ? 'No decks found' : 'No decks yet'}
+              {searchQuery ? 'No decks found' : t('noDecks')}
             </Text>
             <Text style={styles.emptyText}>
               {searchQuery
                 ? `No decks match "${searchQuery}"`
-                : 'Upload a document to generate flashcards'}
+                : t('createFirst')}
             </Text>
           </View>
         ) : (
@@ -99,21 +103,21 @@ export const Library: React.FC = () => {
               const showProgress = deck.status === 'In Progress' && deck.progress > 0 && deck.progress < 100;
 
               return (
-                <View key={deck.id} style={styles.deckCard}>
+                <View key={deck.id} style={[styles.deckCard, { backgroundColor: colors.card }]}>
                   <View style={styles.cardHeader}>
                     <View style={[styles.deckIcon, { backgroundColor: getColor(deck.colorClass) }]}>
                       <MaterialIcons name={deck.icon as any} size={28} color={getIconColor(deck.colorClass)} />
                     </View>
                     <View style={styles.headerText}>
-                      <Text style={styles.deckTitle} numberOfLines={1}>{deck.title}</Text>
+                      <Text style={[styles.deckTitle, { color: colors.text }]} numberOfLines={1}>{deck.title}</Text>
                       <View style={styles.statusRow}>
-                        <Text style={styles.statusText}>
-                          {deck.masteredCount} / {deck.totalCards} cards
+                        <Text style={[styles.statusText, { color: colors.textSecondary }]}>
+                          {deck.masteredCount} / {deck.totalCards} {t('cards')}
                         </Text>
                         {deck.lastStudied && (
                           <>
                             <View style={styles.dot} />
-                            <Text style={styles.statusText}>{deck.lastStudied}</Text>
+                            <Text style={[styles.statusText, { color: colors.textSecondary }]}>{deck.lastStudied}</Text>
                           </>
                         )}
                       </View>
@@ -144,7 +148,7 @@ export const Library: React.FC = () => {
                         style={styles.actionBtnSecondary}
                       >
                         <MaterialIcons name="play-arrow" size={20} color="white" />
-                        <Text style={styles.btnTextSecondary}>
+                        <Text style={[styles.btnTextSecondary, { color: 'white' }]}>
                           {deck.masteredCount === 0 ? 'Start' : 'Continue'}
                         </Text>
                       </TouchableOpacity>
@@ -161,18 +165,17 @@ export const Library: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
-  header: { padding: 24, paddingBottom: 16, backgroundColor: 'rgba(35, 34, 15, 0.95)' },
+  header: { padding: 24, paddingBottom: 16 },
   headerTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
-  headerTitle: { fontSize: 28, fontWeight: 'bold', color: 'white' },
+  headerTitle: { fontSize: 28, fontWeight: 'bold' },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.05)',
     borderRadius: 16,
     paddingHorizontal: 12
   },
   searchIcon: { marginRight: 8 },
-  searchInput: { flex: 1, paddingVertical: 12, color: 'white', fontSize: 16 },
+  searchInput: { flex: 1, paddingVertical: 12, fontSize: 16 },
 
   scrollContent: { padding: 24, paddingBottom: 100 },
   uploadBtn: {
@@ -209,13 +212,13 @@ const styles = StyleSheet.create({
   },
 
   deckList: { gap: 20 },
-  deckCard: { backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 24, padding: 20 },
+  deckCard: { borderRadius: 24, padding: 20 },
   cardHeader: { flexDirection: 'row', gap: 16, marginBottom: 16 },
   deckIcon: { width: 56, height: 56, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
   headerText: { flex: 1, justifyContent: 'center' },
-  deckTitle: { fontSize: 18, fontWeight: 'bold', color: 'white', marginBottom: 4 },
+  deckTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 4 },
   statusRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  statusText: { fontSize: 12, color: '#888' },
+  statusText: { fontSize: 12 },
   dot: { width: 4, height: 4, borderRadius: 2, backgroundColor: '#666' },
 
   progressContainer: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 16 },
@@ -240,10 +243,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255,255,255,0.1)',
+    backgroundColor: 'rgba(168, 85, 247, 0.9)',
     padding: 12,
     borderRadius: 12,
     gap: 8
   },
-  btnTextSecondary: { fontSize: 14, fontWeight: 'bold', color: 'white' },
+  btnTextSecondary: { fontSize: 14, fontWeight: 'bold' },
 });

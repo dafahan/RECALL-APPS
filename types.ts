@@ -37,4 +37,5 @@ export interface Settings {
   apiKey: string;
   dailyReminder: boolean;
   aiSuggestions: boolean;
+  language: 'id' | 'en';
 }

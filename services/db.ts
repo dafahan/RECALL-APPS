@@ -12,7 +12,8 @@ const initDB = () => {
       darkMode INTEGER DEFAULT 1,
       apiKey TEXT,
       dailyReminder INTEGER DEFAULT 1,
-      aiSuggestions INTEGER DEFAULT 0
+      aiSuggestions INTEGER DEFAULT 0,
+      language TEXT DEFAULT 'en'
     );
 
     CREATE TABLE IF NOT EXISTS decks (
@@ -45,9 +46,16 @@ const initDB = () => {
   const settingsCount = database.getFirstSync<{ count: number }>('SELECT COUNT(*) as count FROM settings');
   if (settingsCount?.count === 0) {
     database.runSync(
-      'INSERT INTO settings (id, darkMode, apiKey, dailyReminder, aiSuggestions) VALUES (?, ?, ?, ?, ?)',
-      [1, 1, '', 1, 0]
+      'INSERT INTO settings (id, darkMode, apiKey, dailyReminder, aiSuggestions, language) VALUES (?, ?, ?, ?, ?, ?)',
+      [1, 1, '', 1, 0, 'en']
     );
+  } else {
+    // Add language column to existing settings if it doesn't exist
+    try {
+      database.runSync('ALTER TABLE settings ADD COLUMN language TEXT DEFAULT "en"');
+    } catch (e) {
+      // Column already exists, ignore error
+    }
   }
 };
 
@@ -65,6 +73,7 @@ export const dbService = {
         apiKey: string;
         dailyReminder: number;
         aiSuggestions: number;
+        language: string;
       }>('SELECT * FROM settings WHERE id = 1');
 
       if (result) {
@@ -72,7 +81,8 @@ export const dbService = {
           darkMode: Boolean(result.darkMode),
           apiKey: result.apiKey || '',
           dailyReminder: Boolean(result.dailyReminder),
-          aiSuggestions: Boolean(result.aiSuggestions)
+          aiSuggestions: Boolean(result.aiSuggestions),
+          language: (result.language as 'id' | 'en') || 'en'
         };
       }
     } catch (e) {
@@ -83,14 +93,15 @@ export const dbService = {
       darkMode: true,
       apiKey: '',
       dailyReminder: true,
-      aiSuggestions: false
+      aiSuggestions: false,
+      language: 'en'
     };
   },
 
   async saveSettings(settings: Settings): Promise<void> {
     database.runSync(
-      'UPDATE settings SET darkMode = ?, apiKey = ?, dailyReminder = ?, aiSuggestions = ? WHERE id = 1',
-      [settings.darkMode ? 1 : 0, settings.apiKey, settings.dailyReminder ? 1 : 0, settings.aiSuggestions ? 1 : 0]
+      'UPDATE settings SET darkMode = ?, apiKey = ?, dailyReminder = ?, aiSuggestions = ?, language = ? WHERE id = 1',
+      [settings.darkMode ? 1 : 0, settings.apiKey, settings.dailyReminder ? 1 : 0, settings.aiSuggestions ? 1 : 0, settings.language]
     );
   },
 
