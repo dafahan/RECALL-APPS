@@ -37,6 +37,7 @@ interface Translations {
   mastered: string;
   progress: string;
   lastStudied: string;
+  completed: string;
 
   // Settings Screen
   settingsTitle: string;
@@ -190,6 +191,7 @@ const translations: Record<Language, Translations> = {
     mastered: 'mastered',
     progress: 'Progress',
     lastStudied: 'Last studied',
+    completed: 'Completed',
     
     // Settings Screen
     settingsTitle: 'Settings',
@@ -342,6 +344,7 @@ const translations: Record<Language, Translations> = {
     mastered: 'dikuasai',
     progress: 'Progres',
     lastStudied: 'Terakhir dipelajari',
+    completed: 'Selesai',
     
     // Settings Screen
     settingsTitle: 'Pengaturan',

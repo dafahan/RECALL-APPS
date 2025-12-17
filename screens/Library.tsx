@@ -161,7 +161,7 @@ export const Library: React.FC = () => {
                       <Text style={[styles.deckTitle, { color: colors.text }]} numberOfLines={1}>{deck.title}</Text>
                       <View style={styles.statusRow}>
                         <Text style={[styles.statusText, { color: colors.textSecondary }]}>
-                          {deck.masteredCount} / {deck.totalCards} {t('libraryCards')}
+                          {deck.totalCards} {t('libraryCards')} • {isCompleted ? t('completed') : `${deck.progress}%`}
                         </Text>
                         {deck.lastStudied && (
                           <>
@@ -191,7 +191,7 @@ export const Library: React.FC = () => {
                   <View style={styles.actions}>
                     {isCompleted ? (
                       <TouchableOpacity
-                        onPress={() => navigation.navigate('QuizSetup', { deckId: deck.id })}
+                        onPress={() => navigation.navigate('QuizActive', { deckId: deck.id })}
                         style={styles.actionBtnPrimary}
                       >
                         <MaterialIcons name="refresh" size={20} color="#1c1c0d" />
@@ -199,7 +199,7 @@ export const Library: React.FC = () => {
                       </TouchableOpacity>
                     ) : (
                       <TouchableOpacity
-                        onPress={() => navigation.navigate('QuizSetup', { deckId: deck.id })}
+                        onPress={() => navigation.navigate('QuizActive', { deckId: deck.id })}
                         style={styles.actionBtnSecondary}
                       >
                         <MaterialIcons name="play-arrow" size={20} color="white" />

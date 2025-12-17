@@ -132,7 +132,7 @@ export const dbService = {
     return newId;
   },
 
-  async updateDeckProgress(deckId: string): Promise<void> {
+  async updateDeckProgress(deckId: string, quizCardCount?: number): Promise<void> {
     const deck = database.getFirstSync<Deck>('SELECT * FROM decks WHERE id = ?', [deckId]);
 
     if (deck) {
@@ -143,12 +143,14 @@ export const dbService = {
       );
       const actualMasteredCount = masteredCardsResult?.count || 0;
 
-      const progress = Math.round((actualMasteredCount / deck.totalCards) * 100);
-      const status = progress === 100 ? 'Completed' : (actualMasteredCount > 0 ? 'In Progress' : 'New');
+      // Use quizCardCount if provided (for partial quiz), otherwise use totalCards
+      const cardsInSession = quizCardCount || deck.totalCards;
+      const progress = Math.round((actualMasteredCount / cardsInSession) * 100);
+      const status = progress >= 100 ? 'Completed' : (actualMasteredCount > 0 ? 'In Progress' : 'New');
 
       database.runSync(
         'UPDATE decks SET masteredCount = ?, progress = ?, status = ?, lastStudied = ?, timestamp = ? WHERE id = ?',
-        [actualMasteredCount, progress, status, 'Just now', Date.now(), deckId]
+        [actualMasteredCount, Math.min(progress, 100), status, 'Just now', Date.now(), deckId]
       );
     }
   },

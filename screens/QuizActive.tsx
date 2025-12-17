@@ -33,7 +33,9 @@ export const QuizActive: React.FC = () => {
     if (deckId) {
       // Reset all card statuses for this deck to start fresh
       db.resetDeckCardStatuses(deckId).then(() => {
-        return db.getCardsForDeck(deckId, Number(count) || 10);
+        // If count is provided (from new deck creation), use it; otherwise load all cards (from Library)
+        const limit = count ? Number(count) : undefined;
+        return db.getCardsForDeck(deckId, limit);
       }).then(fetchedCards => {
         setCards(fetchedCards);
         setLoading(false);
@@ -76,7 +78,8 @@ export const QuizActive: React.FC = () => {
       const finalMissed = result === 'missed' ? sessionResults.missed + 1 : sessionResults.missed;
 
       if (deckId) {
-        await db.updateDeckProgress(deckId);
+        // Pass the actual number of cards in this quiz session for correct progress calculation
+        await db.updateDeckProgress(deckId, cards.length);
       }
 
       navigation.replace('Summary', { 
