@@ -1,20 +1,64 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# 🧠 Recall AI - Active Recall Study Companion
 
-# Run and deploy your AI Studio app
+![Recall AI Banner](https://via.placeholder.com/1280x640.png?text=Recall+AI+Banner+Placeholder)
+<p align="center">
+  <img src="https://img.shields.io/badge/Built_with-Expo-000020?style=for-the-badge&logo=expo&logoColor=white" />
+  <img src="https://img.shields.io/badge/Powered_by-Gemini_2.5_Flash-8E75B2?style=for-the-badge&logo=googlebard&logoColor=white" />
+  <img src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/Platform-Android-3DDC84?style=for-the-badge&logo=android&logoColor=white" />
+</p>
 
-This contains everything you need to run your app locally.
+<p align="center">
+  <strong>Stop Passive Reading. Start Active Recall.</strong><br>
+  Turn your PDF journals and lecture notes into interactive quizzes instantly.
+</p>
 
-View your app in AI Studio: https://ai.studio/apps/drive/1_AojbpcVOepdlcXnwDbgIgRnM84QroRF
+---
 
-## Run Locally
+## 📖 About
 
-**Prerequisites:**  Node.js
+**Recall AI** is a mobile application designed to help students and researchers implement the **Active Recall** study method efficiently. Instead of just reading and highlighting text (passive learning), users can upload their study materials, and the AI will generate testing questions to challenge their understanding.
 
+Built during an "overnight sprint" to solve a real college assignment problem, this app leverages **Google's Gemini 2.5 Flash** model with its massive context window to process full documents in seconds.
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+## ✨ Key Features
+
+- 📄 **PDF Analysis:** Upload any journal, ebook, or lecture slide (PDF).
+- 🧠 **AI-Generated Quizzes:** Automatically generates key questions based on the document content.
+- 🚀 **Smart Enrichment Mode:** Goes beyond the document! AI generates related questions outside the provided text to broaden your understanding and context.
+- ⚡ **Fast & Efficient:** Powered by Gemini 2.5 Flash for sub-second processing.
+- 🔑 **BYOK Architecture (Bring Your Own Key):**
+  - **Privacy First:** Your API key is stored locally on your device.
+  - **Free & Unlimited:** Use your own free tier Google AI Studio key. No paywalls from this app.
+
+## 📱 Screenshots
+
+<p align="center">
+  <img src="https://via.placeholder.com/200x400?text=Home" width="200" />
+  <img src="https://via.placeholder.com/200x400?text=PDF+Upload" width="200" />
+  <img src="https://via.placeholder.com/200x400?text=Quiz+Mode" width="200" />
+</p>
+
+## 🛠️ Tech Stack
+
+- **Framework:** [React Native](https://reactnative.dev/) (via [Expo](https://expo.dev/))
+- **Language:** TypeScript / JavaScript
+- **AI Model:** Google Gemini 2.5 Flash
+- **Styling:** NativeWind (Tailwind CSS for React Native) / StyleSheet
+- **State Management:** React Context / Zustand
+- **PDF Handling:** `expo-document-picker`
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+- Node.js installed.
+- [Expo Go](https://expo.dev/client) app installed on your Android device.
+- A free API Key from [Google AI Studio](https://aistudio.google.com/).
+
+### Installation
+
+1. **Clone the repository**
+   ```bash
+   git clone [https://github.com/dafahan/recall-ai.git](https://github.com/dafahan/recall.git)
+   cd recall-ai
