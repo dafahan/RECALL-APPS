@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput, Modal, Alert } from 'react-native';
 import { Layout } from '../components/Layout';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useNavigation, useIsFocused } from '@react-navigation/native';
@@ -16,6 +16,10 @@ export const Library: React.FC = () => {
   const { colors } = useTheme();
   const [decks, setDecks] = useState<Deck[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedDeck, setSelectedDeck] = useState<Deck | null>(null);
+  const [showMenu, setShowMenu] = useState(false);
+  const [showRenameModal, setShowRenameModal] = useState(false);
+  const [renameText, setRenameText] = useState('');
 
   useEffect(() => {
     if (isFocused) {
@@ -26,6 +30,51 @@ export const Library: React.FC = () => {
   const loadDecks = async () => {
     const allDecks = await db.getDecks();
     setDecks(allDecks);
+  };
+
+  const handleOpenMenu = (deck: Deck) => {
+    setSelectedDeck(deck);
+    setShowMenu(true);
+  };
+
+  const handleRename = () => {
+    if (selectedDeck) {
+      setRenameText(selectedDeck.title);
+      setShowMenu(false);
+      setShowRenameModal(true);
+    }
+  };
+
+  const handleConfirmRename = async () => {
+    if (selectedDeck && renameText.trim()) {
+      await db.renameDeck(selectedDeck.id, renameText.trim());
+      setShowRenameModal(false);
+      setSelectedDeck(null);
+      setRenameText('');
+      loadDecks();
+    }
+  };
+
+  const handleDelete = () => {
+    if (selectedDeck) {
+      setShowMenu(false);
+      Alert.alert(
+        'Delete Deck',
+        `Are you sure you want to delete "${selectedDeck.title}"? This will delete all ${selectedDeck.totalCards} cards permanently.`,
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Delete',
+            style: 'destructive',
+            onPress: async () => {
+              await db.deleteDeck(selectedDeck.id);
+              setSelectedDeck(null);
+              loadDecks();
+            }
+          }
+        ]
+      );
+    }
   };
 
   const filteredDecks = decks.filter(deck =>
@@ -112,7 +161,7 @@ export const Library: React.FC = () => {
                       <Text style={[styles.deckTitle, { color: colors.text }]} numberOfLines={1}>{deck.title}</Text>
                       <View style={styles.statusRow}>
                         <Text style={[styles.statusText, { color: colors.textSecondary }]}>
-                          {deck.masteredCount} / {deck.totalCards} {t('cards')}
+                          {deck.masteredCount} / {deck.totalCards} {t('libraryCards')}
                         </Text>
                         {deck.lastStudied && (
                           <>
@@ -122,6 +171,12 @@ export const Library: React.FC = () => {
                         )}
                       </View>
                     </View>
+                    <TouchableOpacity
+                      onPress={() => handleOpenMenu(deck)}
+                      style={[styles.menuBtn, { backgroundColor: colors.background === '#23220f' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)' }]}
+                    >
+                      <MaterialIcons name="more-vert" size={20} color={colors.textSecondary} />
+                    </TouchableOpacity>
                   </View>
 
                   {showProgress && (
@@ -160,6 +215,74 @@ export const Library: React.FC = () => {
           </View>
         )}
       </ScrollView>
+
+      {/* Menu Modal */}
+      <Modal
+        visible={showMenu}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowMenu(false)}
+      >
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setShowMenu(false)}
+        >
+          <View style={[styles.menuModal, { backgroundColor: colors.card }]}>
+            <TouchableOpacity style={styles.menuItem} onPress={handleRename}>
+              <MaterialIcons name="edit" size={20} color={colors.text} />
+              <Text style={[styles.menuText, { color: colors.text }]}>Rename Deck</Text>
+            </TouchableOpacity>
+            <View style={[styles.menuDivider, { backgroundColor: colors.background === '#23220f' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }]} />
+            <TouchableOpacity style={styles.menuItem} onPress={handleDelete}>
+              <MaterialIcons name="delete" size={20} color="#ef4444" />
+              <Text style={[styles.menuText, { color: '#ef4444' }]}>Delete Deck</Text>
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
+      {/* Rename Modal */}
+      <Modal
+        visible={showRenameModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowRenameModal(false)}
+      >
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setShowRenameModal(false)}
+        >
+          <TouchableOpacity activeOpacity={1} onPress={(e) => e.stopPropagation()}>
+            <View style={[styles.renameModal, { backgroundColor: colors.card }]}>
+              <Text style={[styles.modalTitle, { color: colors.text }]}>Rename Deck</Text>
+              <TextInput
+                style={[styles.renameInput, { color: colors.text, borderColor: colors.background === '#23220f' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }]}
+                value={renameText}
+                onChangeText={setRenameText}
+                placeholder="Enter new name"
+                placeholderTextColor={colors.textSecondary}
+                autoFocus
+              />
+              <View style={styles.modalActions}>
+                <TouchableOpacity
+                  style={[styles.modalBtn, styles.cancelBtn, { backgroundColor: colors.background === '#23220f' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)' }]}
+                  onPress={() => setShowRenameModal(false)}
+                >
+                  <Text style={[styles.cancelBtnText, { color: colors.textSecondary }]}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.modalBtn, styles.confirmBtn]}
+                  onPress={handleConfirmRename}
+                >
+                  <Text style={styles.confirmBtnText}>Rename</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </Modal>
     </Layout>
   );
 };
@@ -213,13 +336,14 @@ const styles = StyleSheet.create({
 
   deckList: { gap: 20 },
   deckCard: { borderRadius: 24, padding: 20 },
-  cardHeader: { flexDirection: 'row', gap: 16, marginBottom: 16 },
+  cardHeader: { flexDirection: 'row', gap: 16, marginBottom: 16, alignItems: 'flex-start' },
   deckIcon: { width: 56, height: 56, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
   headerText: { flex: 1, justifyContent: 'center' },
   deckTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 4 },
   statusRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   statusText: { fontSize: 12 },
   dot: { width: 4, height: 4, borderRadius: 2, backgroundColor: '#666' },
+  menuBtn: { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
 
   progressContainer: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 16 },
   track: { flex: 1, height: 8, backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 4, overflow: 'hidden' },
@@ -249,4 +373,84 @@ const styles = StyleSheet.create({
     gap: 8
   },
   btnTextSecondary: { fontSize: 14, fontWeight: 'bold' },
+
+  // Modal styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  menuModal: {
+    borderRadius: 16,
+    paddingVertical: 8,
+    minWidth: 200,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  menuItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  menuText: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  menuDivider: {
+    height: 1,
+    marginVertical: 4,
+  },
+  renameModal: {
+    borderRadius: 24,
+    padding: 24,
+    width: 320,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 16,
+  },
+  renameInput: {
+    borderWidth: 2,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    fontSize: 16,
+    marginBottom: 20,
+  },
+  modalActions: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  modalBtn: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  cancelBtn: {},
+  cancelBtnText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  confirmBtn: {
+    backgroundColor: COLORS.primary,
+  },
+  confirmBtnText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#1c1c0d',
+  },
 });

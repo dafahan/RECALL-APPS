@@ -72,9 +72,9 @@ export const Home: React.FC = () => {
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
           <View style={styles.avatar}>
-            <MaterialIcons name="psychology" size={24} color={COLORS.primary} />
+            <MaterialIcons name="psychology" size={24} color={colors.background === '#23220f' ? COLORS.primary : '#ca8a04'} />
           </View>
-          <Text style={styles.appName}>Recall</Text>
+          <Text style={[styles.appName, { color: colors.text }]}>Recall</Text>
           <TouchableOpacity
             style={styles.historyBtn}
             onPress={() => navigation.navigate('Library')}
@@ -98,10 +98,10 @@ export const Home: React.FC = () => {
             disabled={uploading}
           >
             <LinearGradient
-              colors={colors.background === '#23220f' ? ['#383821', '#2d2c15'] : ['#f0f0f0', '#e0e0e0']}
+              colors={colors.background === '#23220f' ? ['#383821', '#2d2c15'] : ['#ffffff', '#fafafa']}
               style={StyleSheet.absoluteFill}
             />
-            <View style={styles.dashedBorder} />
+            <View style={[styles.dashedBorder, { borderColor: colors.background === '#23220f' ? '#444' : '#d4d4d4' }]} />
 
             {uploading ? (
               <>
@@ -111,7 +111,7 @@ export const Home: React.FC = () => {
             ) : (
               <>
                 <View style={styles.iconCircle}>
-                  <MaterialIcons name="cloud-upload" size={40} color={COLORS.primary} />
+                  <MaterialIcons name="cloud-upload" size={40} color={colors.background === '#23220f' ? COLORS.primary : '#ca8a04'} />
                 </View>
 
                 <View style={styles.uploadTextContainer}>
@@ -129,7 +129,7 @@ export const Home: React.FC = () => {
         </View>
 
         <View style={styles.privacyBadgeContainer}>
-          <View style={styles.privacyBadge}>
+          <View style={[styles.privacyBadge, { backgroundColor: colors.background === '#23220f' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)' }]}>
             <MaterialIcons name="lock" size={14} color="#888" />
             <Text style={styles.privacyText}>{t('privacyText')}</Text>
           </View>
@@ -157,6 +157,11 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 229, 0, 0.2)',
     alignItems: 'center',
     justifyContent: 'center',
+    shadowColor: '#FFE500',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 3,
   },
   appName: {
     flex: 1,
@@ -196,11 +201,15 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     overflow: 'hidden',
     position: 'relative',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 8,
   },
   dashedBorder: {
     ...StyleSheet.absoluteFillObject,
     borderWidth: 4,
-    borderColor: '#444',
     borderStyle: 'dashed',
     borderRadius: 32,
   },
@@ -212,6 +221,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 20,
+    shadowColor: '#FFE500',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 4,
   },
   uploadTextContainer: {
     alignItems: 'center',
@@ -239,6 +253,11 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: 24,
     gap: 8,
+    shadowColor: '#FFE500',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
+    elevation: 5,
   },
   selectBtnText: {
     color: '#1c1c0d',
@@ -251,11 +270,15 @@ const styles = StyleSheet.create({
   privacyBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.05)',
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
     gap: 6,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 2,
   },
   privacyText: {
     fontSize: 12,

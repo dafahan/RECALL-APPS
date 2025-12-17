@@ -132,18 +132,29 @@ export const dbService = {
     return newId;
   },
 
-  async updateDeckProgress(deckId: string, masteredCount: number, totalStudied: number): Promise<void> {
+  async updateDeckProgress(deckId: string): Promise<void> {
     const deck = database.getFirstSync<Deck>('SELECT * FROM decks WHERE id = ?', [deckId]);
 
     if (deck) {
-      const progress = Math.round((masteredCount / deck.totalCards) * 100);
-      const status = progress === 100 ? 'Completed' : 'In Progress';
+      // Get the actual count of mastered cards from the database
+      const masteredCardsResult = database.getFirstSync<{ count: number }>(
+        'SELECT COUNT(*) as count FROM cards WHERE deckId = ? AND status = ?',
+        [deckId, 'mastered']
+      );
+      const actualMasteredCount = masteredCardsResult?.count || 0;
+
+      const progress = Math.round((actualMasteredCount / deck.totalCards) * 100);
+      const status = progress === 100 ? 'Completed' : (actualMasteredCount > 0 ? 'In Progress' : 'New');
 
       database.runSync(
         'UPDATE decks SET masteredCount = ?, progress = ?, status = ?, lastStudied = ?, timestamp = ? WHERE id = ?',
-        [masteredCount, progress, status, 'Just now', Date.now(), deckId]
+        [actualMasteredCount, progress, status, 'Just now', Date.now(), deckId]
       );
     }
+  },
+
+  async renameDeck(deckId: string, newTitle: string): Promise<void> {
+    database.runSync('UPDATE decks SET title = ? WHERE id = ?', [newTitle, deckId]);
   },
 
   async deleteDeck(deckId: string): Promise<void> {

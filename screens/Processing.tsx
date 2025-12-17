@@ -6,11 +6,13 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import { aiService } from '../services/ai';
 import { db } from '../services/db';
 import { useTranslation } from '../services/i18n';
+import { useTheme } from '../services/theme';
 
 export const Processing: React.FC = () => {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const { t } = useTranslation();
+  const { colors } = useTheme();
   const { topic = "Study Session", count = 5, fileName, fileUri, fileContent, mimeType } = route.params || {};
 
   const [progress, setProgress] = useState(0);
@@ -133,18 +135,18 @@ export const Processing: React.FC = () => {
           </View>
 
           <View style={styles.textWrapper}>
-            <Text style={styles.statusTitle}>{statusText}</Text>
-            <Text style={styles.statusSubtitle}>
-              {t('extractingConcepts')} {count} {t('cards').toLowerCase()}...
+            <Text style={[styles.statusTitle, { color: colors.text }]}>{statusText}</Text>
+            <Text style={[styles.statusSubtitle, { color: colors.textSecondary }]}>
+              {t('extractingConcepts')} {count} {t('quizCards').toLowerCase()}...
             </Text>
           </View>
 
           <View style={styles.progressContainer}>
             <View style={styles.progressHeader}>
-              <Text style={styles.progressLabel}>{t('processing')}</Text>
-              <Text style={styles.progressValue}>{progress}%</Text>
+              <Text style={[styles.progressLabel, { color: colors.textSecondary }]}>{t('processing')}</Text>
+              <Text style={[styles.progressValue, { color: colors.text }]}>{progress}%</Text>
             </View>
-            <View style={styles.track}>
+            <View style={[styles.track, { backgroundColor: colors.background === '#23220f' ? '#38371f' : '#e5e5e5' }]}>
               <Animated.View style={[styles.fill, { width: progressWidth }]} />
             </View>
           </View>
@@ -152,7 +154,7 @@ export const Processing: React.FC = () => {
 
         <View style={styles.footer}>
           <TouchableOpacity onPress={() => navigation.navigate('Home')} style={styles.cancelBtn}>
-            <Text style={styles.cancelText}>{t('cancel')}</Text>
+            <Text style={[styles.cancelText, { color: colors.textSecondary }]}>{t('cancel')}</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -205,13 +207,11 @@ const styles = StyleSheet.create({
   statusTitle: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: 'white',
     textAlign: 'center',
     marginBottom: 8,
   },
   statusSubtitle: {
     fontSize: 16,
-    color: '#888',
     textAlign: 'center',
   },
   progressContainer: {
@@ -225,17 +225,14 @@ const styles = StyleSheet.create({
   progressLabel: {
     fontSize: 12,
     fontWeight: 'bold',
-    color: '#666',
     textTransform: 'uppercase',
   },
   progressValue: {
     fontSize: 12,
     fontWeight: 'bold',
-    color: 'white',
   },
   track: {
     height: 6,
-    backgroundColor: '#38371f',
     borderRadius: 3,
     overflow: 'hidden',
   },
@@ -253,7 +250,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
   },
   cancelText: {
-    color: '#888',
     fontSize: 14,
     fontWeight: 'bold',
   },

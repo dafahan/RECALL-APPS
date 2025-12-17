@@ -33,11 +33,11 @@ interface Translations {
   yourDecks: string;
   noDecks: string;
   createFirst: string;
-  cards: string;
+  libraryCards: string;
   mastered: string;
   progress: string;
   lastStudied: string;
-  
+
   // Settings Screen
   settingsTitle: string;
   aiConfiguration: string;
@@ -71,7 +71,7 @@ interface Translations {
   generatingCards: string;
   customizeExperience: string;
   studyDepth: string;
-  cards: string;
+  quizCards: string;
   infoText: string;
   startQuiz: string;
   
@@ -84,7 +84,6 @@ interface Translations {
   invalidApiKey: string;
   extractingConcepts: string;
   processing: string;
-  cancel: string;
   
   // Quiz Active
   questionCount: string;
@@ -137,7 +136,7 @@ const translations: Record<Language, Translations> = {
     yourDecks: 'Your Decks',
     noDecks: 'No study decks yet',
     createFirst: 'Upload a document to create your first deck',
-    cards: 'cards',
+    libraryCards: 'cards',
     mastered: 'mastered',
     progress: 'Progress',
     lastStudied: 'Last studied',
@@ -175,7 +174,7 @@ const translations: Record<Language, Translations> = {
     generatingCards: 'Generating cards for:',
     customizeExperience: 'Customize your experience',
     studyDepth: 'Study Depth',
-    cards: 'Cards',
+    quizCards: 'Cards',
     infoText: 'Short sessions are best for daily retention.',
     startQuiz: 'Start Quiz',
     
@@ -188,7 +187,6 @@ const translations: Record<Language, Translations> = {
     invalidApiKey: 'Invalid API Key',
     extractingConcepts: 'Extracting key concepts & generating',
     processing: 'Processing',
-    cancel: 'Cancel',
     
     // Quiz Active
     questionCount: 'Question',
@@ -240,7 +238,7 @@ const translations: Record<Language, Translations> = {
     yourDecks: 'Deck Anda',
     noDecks: 'Belum ada deck belajar',
     createFirst: 'Unggah dokumen untuk membuat deck pertama',
-    cards: 'kartu',
+    libraryCards: 'kartu',
     mastered: 'dikuasai',
     progress: 'Progres',
     lastStudied: 'Terakhir dipelajari',
@@ -278,7 +276,7 @@ const translations: Record<Language, Translations> = {
     generatingCards: 'Membuat kartu untuk:',
     customizeExperience: 'Sesuaikan pengalaman Anda',
     studyDepth: 'Kedalaman Belajar',
-    cards: 'Kartu',
+    quizCards: 'Kartu',
     infoText: 'Sesi pendek terbaik untuk retensi harian.',
     startQuiz: 'Mulai Kuis',
     
@@ -291,7 +289,6 @@ const translations: Record<Language, Translations> = {
     invalidApiKey: 'Kunci API Tidak Valid',
     extractingConcepts: 'Mengekstrak konsep kunci & membuat',
     processing: 'Memproses',
-    cancel: 'Batal',
     
     // Quiz Active
     questionCount: 'Pertanyaan',

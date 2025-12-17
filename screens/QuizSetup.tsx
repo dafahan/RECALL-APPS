@@ -5,11 +5,13 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTranslation } from '../services/i18n';
+import { useTheme } from '../services/theme';
 
 export const QuizSetup: React.FC = () => {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const { t } = useTranslation();
+  const { colors } = useTheme();
   const { deckId, topic, fileName, fileUri, fileContent, mimeType } = route.params || {};
 
   const [cardCount, setCardCount] = useState(10);
@@ -33,12 +35,12 @@ export const QuizSetup: React.FC = () => {
 
   return (
     <Layout>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.iconBtn}>
-          <MaterialIcons name="arrow-back" size={24} color="white" />
+      <View style={[styles.header, { backgroundColor: colors.background + 'CC' }]}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={[styles.iconBtn, { backgroundColor: colors.background === '#23220f' ? 'rgba(0,0,0,0.3)' : 'rgba(0,0,0,0.05)' }]}>
+          <MaterialIcons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
-        <TouchableOpacity style={styles.iconBtn}>
-          <MaterialIcons name="more-vert" size={24} color="white" />
+        <TouchableOpacity style={[styles.iconBtn, { backgroundColor: colors.background === '#23220f' ? 'rgba(0,0,0,0.3)' : 'rgba(0,0,0,0.05)' }]}>
+          <MaterialIcons name="more-vert" size={24} color={colors.text} />
         </TouchableOpacity>
       </View>
 
@@ -49,16 +51,16 @@ export const QuizSetup: React.FC = () => {
             style={styles.headerImage} 
           />
           <LinearGradient
-            colors={['transparent', COLORS.bgDark]}
+            colors={['transparent', colors.background]}
             style={styles.imageGradient}
           />
         </View>
 
         <View style={styles.titleContainer}>
-          <Text style={styles.title}>
+          <Text style={[styles.title, { color: colors.text }]}>
             {isNewDeck ? t('newSession') : t('readyToRecall')}
           </Text>
-          <Text style={styles.subtitle}>
+          <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
              {isNewDeck ? `${t('generatingCards')} ${displayTopic.slice(0, 20)}...` : t('customizeExperience')}
           </Text>
         </View>
@@ -67,21 +69,30 @@ export const QuizSetup: React.FC = () => {
           <Text style={styles.sectionLabel}>{t('studyDepth')}</Text>
           <View style={styles.optionsGrid}>
             {[5, 10, 15].map(val => (
-              <TouchableOpacity 
-                key={val} 
+              <TouchableOpacity
+                key={val}
                 onPress={() => setCardCount(val)}
                 style={[
-                  styles.optionCard, 
+                  styles.optionCard,
+                  {
+                    backgroundColor: colors.background === '#23220f' ? 'rgba(255,255,255,0.05)' : '#ffffff',
+                    borderColor: cardCount === val ? COLORS.primary : (colors.background === '#23220f' ? 'transparent' : '#e5e5e5'),
+                    shadowColor: '#000',
+                    shadowOffset: { width: 0, height: 2 },
+                    shadowOpacity: colors.background === '#23220f' ? 0 : 0.05,
+                    shadowRadius: 4,
+                    elevation: colors.background === '#23220f' ? 0 : 2,
+                  },
                   cardCount === val && styles.optionCardActive
                 ]}
               >
-                <Text style={[styles.optionValue, cardCount === val && styles.optionValueActive]}>
+                <Text style={[styles.optionValue, { color: cardCount === val ? '#1c1c0d' : colors.text }]}>
                   {val}
                 </Text>
-                <Text style={styles.optionLabel}>{t('cards')}</Text>
+                <Text style={[styles.optionLabel, { color: cardCount === val ? 'rgba(0,0,0,0.6)' : colors.textSecondary }]}>{t('quizCards')}</Text>
                 {cardCount === val && (
                   <View style={styles.checkIcon}>
-                     <MaterialIcons name="check-circle" size={18} color="black" />
+                     <MaterialIcons name="check-circle" size={18} color="#1c1c0d" />
                   </View>
                 )}
               </TouchableOpacity>
@@ -89,18 +100,24 @@ export const QuizSetup: React.FC = () => {
           </View>
         </View>
 
-        <View style={styles.infoBox}>
-          <MaterialIcons name="info" size={20} color="#888" />
-          <Text style={styles.infoText}>
-            {t('infoText')} {cardCount} {t('cards').toLowerCase()} ~{Math.ceil(cardCount * 0.5)}m.
+        <View style={[styles.infoBox, { backgroundColor: colors.background === '#23220f' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)' }]}>
+          <MaterialIcons name="info" size={20} color={colors.textSecondary} />
+          <Text style={[styles.infoText, { color: colors.textSecondary }]}>
+            {t('infoText')}
           </Text>
         </View>
       </View>
 
-      <View style={styles.footer}>
-        <TouchableOpacity 
+      <View style={[styles.footer, { backgroundColor: 'transparent' }]}>
+        <TouchableOpacity
           onPress={handleStart}
-          style={styles.startBtn}
+          style={[styles.startBtn, {
+            shadowColor: '#FFE500',
+            shadowOffset: { width: 0, height: 4 },
+            shadowOpacity: 0.3,
+            shadowRadius: 8,
+            elevation: 6,
+          }]}
           activeOpacity={0.9}
         >
           <MaterialIcons name={isNewDeck ? "auto-awesome" : "flash-on"} size={24} color="#1c1c0d" />
@@ -127,7 +144,6 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'rgba(0,0,0,0.3)',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -163,12 +179,11 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: 'white',
     marginBottom: 8,
+    textAlign: 'center',
   },
   subtitle: {
     fontSize: 16,
-    color: '#888',
     textAlign: 'center',
   },
   section: {
@@ -188,11 +203,9 @@ const styles = StyleSheet.create({
   },
   optionCard: {
     flex: 1,
-    height: 110,
+    height: 120,
     borderRadius: 16,
-    backgroundColor: 'rgba(255,255,255,0.05)',
     borderWidth: 2,
-    borderColor: 'transparent',
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
@@ -204,7 +217,6 @@ const styles = StyleSheet.create({
   optionValue: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: 'white',
   },
   optionValueActive: {
     color: '#1c1c0d',
@@ -213,7 +225,6 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: 'bold',
     textTransform: 'uppercase',
-    color: '#888',
     marginTop: 4,
   },
   checkIcon: {
@@ -224,14 +235,12 @@ const styles = StyleSheet.create({
   infoBox: {
     flexDirection: 'row',
     padding: 16,
-    backgroundColor: 'rgba(255,255,255,0.05)',
     borderRadius: 16,
     gap: 12,
   },
   infoText: {
     flex: 1,
     fontSize: 14,
-    color: '#888',
     lineHeight: 20,
   },
   footer: {
