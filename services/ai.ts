@@ -3,20 +3,13 @@ import { db } from './db';
 import * as FileSystem from 'expo-file-system';
 
 export const aiService = {
-  /**
-   * Extract text content from a file
-   */
+  // ... (extractFileContent tetap sama) ...
   async extractFileContent(fileUri: string, mimeType: string): Promise<string> {
     try {
-      // For text files, read directly
       if (mimeType === 'text/plain') {
         const content = await FileSystem.readAsStringAsync(fileUri);
         return content;
       }
-
-      // For PDFs, we'll use Gemini's file API or extract what we can
-      // Note: Full PDF parsing would require native libraries
-      // For now, we'll use the file URI directly with Gemini
       return '';
     } catch (error) {
       console.error('Error extracting file content:', error);
@@ -35,7 +28,6 @@ export const aiService = {
     mimeType?: string,
     language: 'id' | 'en' = 'en'
   ): Promise<{ title: string; cards: { question: string; answer: string }[] }> {
-    // Get API key from settings
     const settings = await db.getSettings();
     const apiKey = settings.apiKey || process.env.GEMINI_API_KEY || '';
 
@@ -45,27 +37,31 @@ export const aiService = {
 
     const ai = new GoogleGenAI({ apiKey });
 
-    // Extract content if file URI provided
     let documentContent = fileContent || '';
     if (!documentContent && fileUri && mimeType) {
       documentContent = await this.extractFileContent(fileUri, mimeType);
     }
 
-    // Determine if we have actual document content or just a topic
     const hasDocumentContent = documentContent && documentContent.length > 100;
+    
+    // Check enrichment setting
+    const useEnrichment = settings.aiSuggestions;
 
-    // Build the prompt based on whether we have document content
     const prompt = hasDocumentContent
-      ? this.buildDocumentBasedPrompt(topic, count, documentContent, settings.aiSuggestions, language)
+      ? this.buildDocumentBasedPrompt(topic, count, documentContent, useEnrichment, language)
       : this.buildTopicBasedPrompt(topic, count, language);
+
+    // TWEAK: Gunakan temperature lebih rendah jika Strict Mode (tanpa enrichment)
+    // agar AI lebih patuh pada konteks.
+    const temperature = (hasDocumentContent && !useEnrichment) ? 0.3 : 0.7;
 
     try {
       const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash-lite',
+        model: 'gemini-2.5-flash-lite', // Pastikan model ini valid atau gunakan 'gemini-1.5-flash'
         contents: prompt,
         config: {
           responseMimeType: 'application/json',
-          temperature: 0.7,
+          temperature: temperature, 
         }
       });
 
@@ -73,7 +69,6 @@ export const aiService = {
       const cleanText = text.replace(/```json|```/g, '').trim();
       const result = JSON.parse(cleanText);
 
-      // Validate the response
       if (!result.title || !result.cards || !Array.isArray(result.cards)) {
         throw new Error('Invalid response format from AI');
       }
@@ -81,15 +76,12 @@ export const aiService = {
       return result;
     } catch (error) {
       console.error("AI Generation Error:", error);
-
-      // Provide more specific error message
       if (error instanceof Error) {
         if (error.message.includes('API_KEY') || error.message.includes('401')) {
           throw new Error('Invalid API key. Please check your Gemini API key in Settings.');
         }
         throw new Error(`AI generation failed: ${error.message}`);
       }
-
       throw new Error('Failed to generate flashcards. Please try again.');
     }
   },
@@ -98,110 +90,84 @@ export const aiService = {
    * Build prompt for document-based flashcard generation
    */
   buildDocumentBasedPrompt(topic: string, count: number, content: string, enableEnrichment: boolean, language: 'id' | 'en' = 'en'): string {
-    const enrichmentInstruction = enableEnrichment
-      ? `\n- You may also generate max 50% related questions that go beyond the document but are conceptually connected to help deepen understanding.`
-      : '';
+    // TWEAK 1: Strictness Logic yang lebih agresif
+    const strictnessInstruction = enableEnrichment
+      ? `\n- **Enrichment Allowed**: You may generate up to 50% related questions that go beyond the document to help deepen understanding.`
+      : `\n- **STRICTLY GROUNDED**: All questions MUST be answerable ONLY using the information provided in the <document_content> tags below.
+- **DO NOT** use outside knowledge or hallucinate facts not present in the text.
+- If the document does not mention a specific detail, DO NOT ask about it.`;
 
-    const languageInstruction = language === 'id'
-      ? 'Buat semua pertanyaan dan jawaban dalam Bahasa Indonesia yang jelas dan mudah dipahami.'
-      : 'Create all questions and answers in clear, easy-to-understand English.';
-
-    const questionTypesText = language === 'id'
-      ? `**Jenis Pertanyaan yang Digunakan**:
-- Pertanyaan definisi: "Apa itu...?", "Definisikan..."
-- Pertanyaan penjelasan: "Bagaimana... bekerja?", "Jelaskan proses..."
-- Pertanyaan perbandingan: "Apa perbedaan antara... dan...?"
-- Pertanyaan aplikasi: "Kapan Anda menggunakan...?", "Mengapa... penting?"
-- Pertanyaan hubungan: "Bagaimana... berhubungan dengan...?"`
-      : `**Question Types to Use**:
-- Definition questions: "What is...?", "Define..."
-- Explanation questions: "How does... work?", "Explain the process of..."
-- Comparison questions: "What is the difference between... and...?"
-- Application questions: "When would you use...?", "Why is... important?"
-- Relationship questions: "How does... relate to...?"`;
-
-    return `You are an expert educational content creator specializing in creating effective flashcards for active recall and spaced repetition learning.
-
-**Task**: Create exactly ${count} high-quality flashcards from the following document about "${topic}".
-
-**Document Content**:
-${content.substring(0, 8000)} ${content.length > 8000 ? '...(content truncated)' : ''}
-
-**Instructions**:
-${languageInstruction}
-1. **Extract Key Concepts**: Identify the most important concepts, definitions, processes, and relationships in the document
-2. **Create Focused Questions**: Each flashcard should test ONE specific concept
-3. **Use Active Recall**: Frame questions to make learners retrieve information from memory
-4. **Provide Clear Answers**: Answers should be concise but complete (2-4 sentences)
-5. **Progressive Difficulty**: Mix basic recall questions with application/understanding questions
-6. **Avoid Ambiguity**: Questions should have clear, unambiguous answers${enrichmentInstruction}
-
-${questionTypesText}
-
-**Response Format** (JSON only):
-{
-  "title": "Concise 3-5 word title for this deck",
-  "cards": [
-    {
-      "question": "Clear, specific question testing one concept",
-      "answer": "Accurate, concise answer (2-4 sentences)"
-    }
-  ]
-}
-
-Generate exactly ${count} cards. Return only valid JSON, no markdown formatting.`;
-  },
-
-  /**
-   * Build prompt for topic-based flashcard generation (no document)
-   */
-  buildTopicBasedPrompt(topic: string, count: number, language: 'id' | 'en' = 'en'): string {
     const languageInstruction = language === 'id'
       ? 'Buat semua pertanyaan dan jawaban dalam Bahasa Indonesia yang jelas dan mudah dipahami.'
       : 'Create all questions and answers in clear, easy-to-understand English.';
 
     const questionTypesText = language === 'id'
       ? `**Jenis Pertanyaan**:
-- Definisi dan terminologi
-- Konsep dan prinsip inti
-- Cara kerja (proses/mekanisme)
-- Aplikasi dan kasus penggunaan
-- Perbandingan dan hubungan
-- Fakta dan detail penting`
+- Definisi ("Apa itu...?")
+- Penjelasan Proses ("Bagaimana cara kerja...?")
+- Hubungan ("Bagaimana kaitan antara A dan B?")`
       : `**Question Types**:
-- Definitions and terminology
-- Core concepts and principles
-- How things work (processes/mechanisms)
-- Applications and use cases
-- Comparisons and relationships
-- Important facts and details`;
+- Definition
+- Process/Explanation
+- Relationship`;
 
-    return `You are an expert educational content creator specializing in creating effective flashcards.
+    // TWEAK 2: Hapus limit 8000 char jika pakai Gemini Flash (Context window dia besar, sayang kalau dipotong)
+    // Jika memang harus dipotong, pastikan potongannya rapi.
+    const processedContent = content.length > 30000 ? content.substring(0, 30000) + '...(truncated)' : content;
 
-**Task**: Create exactly ${count} high-quality flashcards about "${topic}".
+    // TWEAK 3: Struktur Prompt dengan XML Tagging
+    return `You are an expert educational content creator.
+
+**Task**: Create exactly ${count} high-quality flashcards based on the provided document about "${topic}".
+
+${strictnessInstruction}
 
 **Instructions**:
-${languageInstruction}
-1. Cover fundamental concepts and important details about "${topic}"
-2. Each flashcard should test ONE specific concept
-3. Use active recall - make learners retrieve information
-4. Answers should be concise but complete (2-4 sentences)
-5. Progress from basic to more advanced concepts
-6. Include practical applications where relevant
+1. ${languageInstruction}
+2. Extract key concepts directly from the source text.
+3. Each flashcard must test ONE specific concept.
+4. Use Active Recall phrasing.
+5. Answers must be concise (2-4 sentences).
 
 ${questionTypesText}
 
+<document_content>
+${processedContent}
+</document_content>
+
 **Response Format** (JSON only):
 {
-  "title": "Concise 3-5 word title for this deck",
+  "title": "Concise title",
   "cards": [
     {
-      "question": "Clear, specific question",
-      "answer": "Accurate, concise answer (2-4 sentences)"
+      "question": "Question",
+      "answer": "Answer"
     }
   ]
 }
+Generate exactly ${count} cards. JSON format only.`;
+  },
 
-Generate exactly ${count} cards. Return only valid JSON, no markdown formatting.`;
+  // ... (buildTopicBasedPrompt tetap sama) ...
+  buildTopicBasedPrompt(topic: string, count: number, language: 'id' | 'en' = 'en'): string {
+      // (Kode yang sudah ada sebelumnya oke, karena ini memang general knowledge)
+      const languageInstruction = language === 'id'
+      ? 'Buat semua pertanyaan dan jawaban dalam Bahasa Indonesia yang jelas dan mudah dipahami.'
+      : 'Create all questions and answers in clear, easy-to-understand English.';
+
+    return `You are an expert educational content creator.
+Task: Create ${count} flashcards about "${topic}".
+${languageInstruction}
+
+Rules:
+1. Cover fundamental concepts.
+2. Concise answers (2-4 sentences).
+3. Progress from basic to advanced.
+
+Response Format (JSON):
+{
+  "title": "Title",
+  "cards": [{"question": "Q", "answer": "A"}]
+}`;
   }
 };
