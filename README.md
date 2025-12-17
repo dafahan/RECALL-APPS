@@ -60,5 +60,5 @@ Built during an "overnight sprint" to solve a real college assignment problem, t
 
 1. **Clone the repository**
    ```bash
-   git clone [https://github.com/dafahan/recall-ai.git](https://github.com/dafahan/recall.git)
-   cd recall-ai
+   git clone [https://github.com/dafahan/RECALL-APPS.git](https://github.com/dafahan/RECALL-APPS.git)
+   
