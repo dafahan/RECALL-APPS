@@ -1,6 +1,6 @@
 # 🧠 Recall AI - Active Recall Study Companion
 
-![Recall AI Banner](https://via.placeholder.com/1280x640.png?text=Recall+AI+Banner+Placeholder)
+![Recall AI Banner](./banner.png)
 <p align="center">
   <img src="https://img.shields.io/badge/Built_with-Expo-000020?style=for-the-badge&logo=expo&logoColor=white" />
   <img src="https://img.shields.io/badge/Powered_by-Gemini_2.5_Flash-8E75B2?style=for-the-badge&logo=googlebard&logoColor=white" />
@@ -60,5 +60,5 @@ Built during an "overnight sprint" to solve a real college assignment problem, t
 
 1. **Clone the repository**
    ```bash
-   git clone [https://github.com/dafahan/recall-ai.git](https://github.com/dafahan/recall.git)
-   cd recall-ai
+   git clone [https://github.com/dafahan/RECALL-APPS.git](https://github.com/dafahan/RECALL-APPS.git)
+   
